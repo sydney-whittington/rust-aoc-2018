@@ -19,9 +19,6 @@ dhat-heap = ["dhat"]
 today = ["chrono"]
 test_lib = []
 
-[env]
-AOC_YEAR = "2018"
-
 [dependencies]
 
 # Template dependencies
@@ -31,3 +28,5 @@ pico-args = "0.5.0"
 tinyjson = "2.5.1"
 
 # Solution dependencies
+itertools = "0.13.0"
+nom = "7.1.3"
