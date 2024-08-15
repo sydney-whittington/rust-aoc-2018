@@ -1,5 +1,7 @@
 advent_of_code::solution!(1);
 
+use std::{cell::Cell, collections::HashSet};
+
 use nom::{
     character::complete::{i32, newline}, multi::separated_list0, IResult
 };
@@ -14,7 +16,17 @@ pub fn part_one(input: &str) -> Option<i32> {
 }
 
 pub fn part_two(input: &str) -> Option<i32> {
-    None
+    let (_, nums) = parser(input).unwrap();
+    let mut set = HashSet::new();
+    let result = Cell::new(0);
+
+    nums.iter()
+        .cycle()
+        .scan(result, |state, n| {
+            state.set(state.get() + n);
+            Some(state.get())
+        })
+        .find(|n| !set.insert(*n))
 }
 
 #[cfg(test)]
@@ -33,7 +45,9 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        let result = part_two(&advent_of_code::template::read_file_part("examples", DAY, 3));
+        assert_eq!(result, Some(0));
+        let result = part_two(&advent_of_code::template::read_file_part("examples", DAY, 4));
+        assert_eq!(result, Some(10));
     }
 }
