@@ -18,6 +18,8 @@ pub fn part_one(input: &str) -> Option<i32> {
 pub fn part_two(input: &str) -> Option<i32> {
     let (_, nums) = parser(input).unwrap();
     let mut set = HashSet::new();
+    // initial value
+    set.insert(0);
     let result = Cell::new(0);
 
     nums.iter()
