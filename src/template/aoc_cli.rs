@@ -89,10 +89,12 @@ fn get_puzzle_path(day: Day) -> String {
 }
 
 fn get_year() -> Option<u16> {
-    match std::env::var("AOC_YEAR") {
-        Ok(x) => x.parse().ok().or(None),
-        Err(_) => None,
-    }
+    // match std::env::var("AOC_YEAR") {
+    //     Ok(x) => x.parse().ok().or(None),
+    //     Err(_) => None,
+    // }
+    // sjw
+    Some(2018)
 }
 
 fn build_args(command: &str, args: &[String], day: Day) -> Vec<String> {

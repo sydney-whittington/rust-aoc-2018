@@ -19,6 +19,9 @@ dhat-heap = ["dhat"]
 today = ["chrono"]
 test_lib = []
 
+[env]
+AOC_YEAR = "2018"
+
 [dependencies]
 
 # Template dependencies
