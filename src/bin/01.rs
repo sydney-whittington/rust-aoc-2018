@@ -3,7 +3,9 @@ advent_of_code::solution!(1);
 use std::{cell::Cell, collections::HashSet};
 
 use nom::{
-    character::complete::{i32, newline}, multi::separated_list0, IResult
+    character::complete::{i32, newline},
+    multi::separated_list0,
+    IResult,
 };
 
 fn parser(i: &str) -> IResult<&str, Vec<i32>> {
@@ -39,17 +41,25 @@ mod tests {
     fn test_part_one() {
         let result = part_one(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(3));
-        let result = part_one(&advent_of_code::template::read_file_part("examples", DAY, 1));
+        let result = part_one(&advent_of_code::template::read_file_part(
+            "examples", DAY, 1,
+        ));
         assert_eq!(result, Some(0));
-        let result = part_one(&advent_of_code::template::read_file_part("examples", DAY, 2));
+        let result = part_one(&advent_of_code::template::read_file_part(
+            "examples", DAY, 2,
+        ));
         assert_eq!(result, Some(-6));
     }
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file_part("examples", DAY, 3));
+        let result = part_two(&advent_of_code::template::read_file_part(
+            "examples", DAY, 3,
+        ));
         assert_eq!(result, Some(0));
-        let result = part_two(&advent_of_code::template::read_file_part("examples", DAY, 4));
+        let result = part_two(&advent_of_code::template::read_file_part(
+            "examples", DAY, 4,
+        ));
         assert_eq!(result, Some(10));
     }
 }
