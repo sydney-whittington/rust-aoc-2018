@@ -16,14 +16,14 @@ pub fn part_one(input: &str) -> Option<u32> {
     let (_, boxes) = parser(input).unwrap();
     let two: u32 = boxes
         .iter()
-        .map(|v| v.chars().counts().values().any(|x| *x == 2))
+        .map(|v| v.chars().counts().values().any(|&x| x == 2))
         .filter(|x| *x == true)
         .count()
         .try_into()
         .unwrap();
     let three: u32 = boxes
         .iter()
-        .map(|v| v.chars().counts().values().any(|x| *x == 3))
+        .map(|v| v.chars().counts().values().any(|&x| x == 3))
         .filter(|x| *x == true)
         .count()
         .try_into()
@@ -39,8 +39,8 @@ pub fn part_two<'a>(input: &'a str) -> Option<String> {
         .find(|x| levenshtein(x[0], x[1]) == 1)
         .unwrap();
     let shared: String = closest_two[0]
-        .iter_elements()
-        .zip(closest_two[1].iter_elements())
+        .chars()
+        .zip(closest_two[1].chars())
         .filter(|(x, y)| x == y)
         .map(|(x, _)| x)
         .collect();
