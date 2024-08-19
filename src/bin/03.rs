@@ -1,7 +1,7 @@
 advent_of_code::solution!(3);
 
 use std::{
-    collections::{HashMap},
+    collections::{HashMap, HashSet},
     str::FromStr,
 };
 
@@ -73,8 +73,29 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(fabric.values().filter(|&x| *x > 1).count().try_into().unwrap())
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<u32> {
+    let (_, claims) = parser(input).unwrap();
+    let mut fabric : HashMap<(u32, u32), (u32, u32)> = HashMap::new();
+    let mut clean_ids = HashSet::new();
+
+    for claim in claims.iter() {
+        clean_ids.insert(claim.id.clone());
+        for (x, y) in (claim.location.left..(claim.location.left + claim.size.wide))
+            .cartesian_product(claim.location.top..(claim.location.top + claim.size.tall))
+        {
+            // this is probably inefficient but sets are fast
+            if fabric.contains_key(&(x, y))
+            {
+                let (_, prev_owner) = fabric.get(&(x, y)).unwrap();
+                clean_ids.remove(&claim.id);
+                clean_ids.remove(&prev_owner);
+            }
+            fabric.entry((x, y)).and_modify(|(x, _)| *x += 1).or_insert((1, claim.id));
+        }
+    }
+
+    // get the only thing left in clean_ids
+    Some(clean_ids.drain().collect::<Vec<u32>>()[0])
 }
 
 #[cfg(test)]
@@ -90,6 +111,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(3));
     }
 }
