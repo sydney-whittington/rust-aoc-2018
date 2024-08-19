@@ -1,15 +1,12 @@
 advent_of_code::solution!(3);
 
-use std::{
-    collections::{HashMap, HashSet},
-    str::FromStr,
-};
+use std::collections::{HashMap, HashSet};
 
+use advent_of_code::number;
 use itertools::Itertools;
 use nom::{
     bytes::complete::tag,
-    character::complete::{digit1, newline},
-    combinator::map_res,
+    character::complete::newline,
     multi::separated_list0,
     sequence::{preceded, separated_pair},
     IResult,
@@ -32,11 +29,6 @@ pub struct Claim {
     pub id: u32,
     pub location: Coordinate,
     pub size: Size,
-}
-
-// https://blog.adamchalmers.com/nom-chars/
-fn number(i: &str) -> IResult<&str, u32> {
-    map_res(digit1, u32::from_str)(i)
 }
 
 fn one_entry(i: &str) -> IResult<&str, Claim> {
@@ -70,12 +62,19 @@ pub fn part_one(input: &str) -> Option<u32> {
         }
     }
 
-    Some(fabric.values().filter(|&x| *x > 1).count().try_into().unwrap())
+    Some(
+        fabric
+            .values()
+            .filter(|&x| *x > 1)
+            .count()
+            .try_into()
+            .unwrap(),
+    )
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
     let (_, claims) = parser(input).unwrap();
-    let mut fabric : HashMap<(u32, u32), (u32, u32)> = HashMap::new();
+    let mut fabric: HashMap<(u32, u32), (u32, u32)> = HashMap::new();
     let mut clean_ids = HashSet::new();
 
     for claim in claims.iter() {
@@ -84,13 +83,15 @@ pub fn part_two(input: &str) -> Option<u32> {
             .cartesian_product(claim.location.top..(claim.location.top + claim.size.tall))
         {
             // this is probably inefficient but sets are fast
-            if fabric.contains_key(&(x, y))
-            {
+            if fabric.contains_key(&(x, y)) {
                 let (_, prev_owner) = fabric.get(&(x, y)).unwrap();
                 clean_ids.remove(&claim.id);
                 clean_ids.remove(&prev_owner);
             }
-            fabric.entry((x, y)).and_modify(|(x, _)| *x += 1).or_insert((1, claim.id));
+            fabric
+                .entry((x, y))
+                .and_modify(|(x, _)| *x += 1)
+                .or_insert((1, claim.id));
         }
     }
 
