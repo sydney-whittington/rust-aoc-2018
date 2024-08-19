@@ -3,7 +3,7 @@ use levenshtein::levenshtein;
 use nom::{
     character::complete::{alpha1, newline},
     multi::separated_list0,
-    IResult, InputIter,
+    IResult,
 };
 
 advent_of_code::solution!(2);
