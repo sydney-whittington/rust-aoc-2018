@@ -1,7 +1,11 @@
 advent_of_code::solution!(3);
 
-use std::str::FromStr;
+use std::{
+    collections::{HashMap},
+    str::FromStr,
+};
 
+use itertools::Itertools;
 use nom::{
     bytes::complete::tag,
     character::complete::{digit1, newline},
@@ -55,11 +59,21 @@ fn parser(i: &str) -> IResult<&str, Vec<Claim>> {
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
-    println!("{:?}", parser(input));
-    None
+    let (_, claims) = parser(input).unwrap();
+    let mut fabric = HashMap::new();
+
+    for claim in claims.iter() {
+        for (x, y) in (claim.location.left..(claim.location.left + claim.size.wide))
+            .cartesian_product(claim.location.top..(claim.location.top + claim.size.tall))
+        {
+            fabric.entry((x, y)).and_modify(|x| *x += 1).or_insert(1);
+        }
+    }
+
+    Some(fabric.values().filter(|&x| *x > 1).count().try_into().unwrap())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
+pub fn part_two(_input: &str) -> Option<u32> {
     None
 }
 
