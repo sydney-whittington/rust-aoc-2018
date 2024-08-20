@@ -28,12 +28,12 @@ fn polymerize<'a>(i: impl Iterator<Item = &'a u8>) -> Vec<u8> {
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
-    let polymer = polymerize(input.trim().as_bytes().into_iter());
+    let polymer = polymerize(input.trim().as_bytes().iter());
     Some(polymer.len())
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    let polymer = polymerize(input.trim().as_bytes().into_iter());
+    let polymer = polymerize(input.trim().as_bytes().iter());
     let mut smallest = usize::MAX;
     for letter in b'a'..b'z' {
         let filtered = polymer
