@@ -108,8 +108,22 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(guard * sleepy_minute)
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<u32> {
+    let (_, mut observations) = parser(input).unwrap();
+    observations.sort_unstable_by(|a, b| a.timestamp.cmp(&b.timestamp));
+    let shifts = timing(&observations);
+
+    let (guard, schedule) = shifts
+        .iter()
+        // one line change woo
+        .max_by_key(|(_, minutes)| minutes.values().max())
+        .unwrap();
+    let (sleepy_minute, _) = schedule
+        .iter()
+        .max_by_key(|&(_minute, count)| count)
+        .unwrap();
+
+    Some(guard * sleepy_minute)
 }
 
 #[cfg(test)]
@@ -125,6 +139,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(4455));
     }
 }
