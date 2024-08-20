@@ -6,7 +6,6 @@ use chrono::{NaiveDateTime, Timelike};
 
 use advent_of_code::number;
 
-use itertools::Itertools;
 use nom::{
     branch::alt,
     bytes::complete::{is_not, tag},

@@ -6,20 +6,20 @@ use std::cmp::min;
 // not realizing that you can't splice together the input string with &strs
 // and also that there's probably an easier way to do it
 
-fn can_react(a: &char, b: &char) -> bool {
+fn can_react(a: &u8, b: &u8) -> bool {
     a.eq_ignore_ascii_case(&b) && a != b
 }
 
-fn polymerize(i: String) -> Vec<char> {
+fn polymerize<'a>(i: impl Iterator<Item = &'a u8>) -> Vec<u8> {
     // somewhat based on https://www.reddit.com/r/adventofcode/comments/a3912m/2018_day_5_solutions/eb4fkwu/
-    i.trim().chars().fold(Vec::new(), |mut s, c| {
+    i.fold(Vec::new(), |mut s, c| {
         match s.last() {
-            None => s.push(c),
+            None => s.push(*c),
             Some(&p) => {
                 if can_react(&c, &p) {
                     s.pop();
                 } else {
-                    s.push(c);
+                    s.push(*c);
                 }
             }
         };
@@ -27,22 +27,21 @@ fn polymerize(i: String) -> Vec<char> {
     })
 }
 
-pub fn part_one(input: &str) -> Option<u32> {
-    let polymer = polymerize(input.to_string());
-    Some(polymer.len().try_into().unwrap())
+pub fn part_one(input: &str) -> Option<usize> {
+    let polymer = polymerize(input.trim().as_bytes().into_iter());
+    Some(polymer.len())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    let polymer = polymerize(input.to_string());
+pub fn part_two(input: &str) -> Option<usize> {
+    let polymer = polymerize(input.trim().as_bytes().into_iter());
     let mut smallest = usize::MAX;
     for letter in b'a'..b'z' {
         let filtered = polymer
             .iter()
-            .filter(|c| !c.eq_ignore_ascii_case(&char::from(letter)))
-            .collect();
+            .filter(|c| !c.eq_ignore_ascii_case(&letter));
         smallest = min(smallest, polymerize(filtered).len())
     }
-    Some(smallest.try_into().unwrap())
+    Some(smallest)
 }
 
 #[cfg(test)]

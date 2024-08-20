@@ -12,23 +12,19 @@ fn parser(i: &str) -> IResult<&str, Vec<&str>> {
     separated_list0(newline, alpha1)(i)
 }
 
-pub fn part_one(input: &str) -> Option<u32> {
+pub fn part_one(input: &str) -> Option<usize> {
     let (_, boxes) = parser(input).unwrap();
-    let two: u32 = boxes
+    let two = boxes
         .iter()
         .map(|v| v.chars().counts().values().any(|&x| x == 2))
         .filter(|x| *x == true)
-        .count()
-        .try_into()
-        .unwrap();
-    let three: u32 = boxes
+        .count();
+    let three = boxes
         .iter()
         .map(|v| v.chars().counts().values().any(|&x| x == 3))
         .filter(|x| *x == true)
-        .count()
-        .try_into()
-        .unwrap();
-    Some((two * three).into())
+        .count();
+    Some(two * three)
 }
 
 pub fn part_two<'a>(input: &'a str) -> Option<String> {

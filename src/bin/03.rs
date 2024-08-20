@@ -50,7 +50,7 @@ fn parser(i: &str) -> IResult<&str, Vec<Claim>> {
     separated_list0(newline, one_entry)(i)
 }
 
-pub fn part_one(input: &str) -> Option<u32> {
+pub fn part_one(input: &str) -> Option<usize> {
     let (_, claims) = parser(input).unwrap();
     let mut fabric = HashMap::new();
 
@@ -67,8 +67,6 @@ pub fn part_one(input: &str) -> Option<u32> {
             .values()
             .filter(|&x| *x > 1)
             .count()
-            .try_into()
-            .unwrap(),
     )
 }
 
