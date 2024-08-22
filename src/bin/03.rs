@@ -2,7 +2,7 @@ advent_of_code::solution!(3);
 
 use std::collections::{HashMap, HashSet};
 
-use advent_of_code::number;
+use advent_of_code::{coord_parse, number, Coordinate};
 use itertools::Itertools;
 use nom::{
     bytes::complete::tag,
@@ -11,12 +11,6 @@ use nom::{
     sequence::{preceded, separated_pair},
     IResult,
 };
-
-#[derive(Debug)]
-pub struct Coordinate {
-    pub left: u32,
-    pub top: u32,
-}
 
 #[derive(Debug)]
 pub struct Size {
@@ -33,14 +27,14 @@ pub struct Claim {
 
 fn one_entry(i: &str) -> IResult<&str, Claim> {
     let (i, id) = preceded(tag("#"), number)(i)?;
-    let (i, (left, top)) = preceded(tag(" @ "), separated_pair(number, tag(","), number))(i)?;
+    let (i, location) =  preceded(tag(" @ "), coord_parse)(i)?;
     let (i, (wide, tall)) = preceded(tag(": "), separated_pair(number, tag("x"), number))(i)?;
 
     Ok((
         i,
         Claim {
             id,
-            location: Coordinate { left, top },
+            location,
             size: Size { wide, tall },
         },
     ))
@@ -62,12 +56,7 @@ pub fn part_one(input: &str) -> Option<usize> {
         }
     }
 
-    Some(
-        fabric
-            .values()
-            .filter(|&x| *x > 1)
-            .count()
-    )
+    Some(fabric.values().filter(|&x| *x > 1).count())
 }
 
 pub fn part_two(input: &str) -> Option<u32> {

@@ -36,9 +36,7 @@ pub fn part_two(input: &str) -> Option<usize> {
     let polymer = polymerize(input.trim().as_bytes().iter());
     let mut smallest = usize::MAX;
     for letter in b'a'..b'z' {
-        let filtered = polymer
-            .iter()
-            .filter(|c| !c.eq_ignore_ascii_case(&letter));
+        let filtered = polymer.iter().filter(|c| !c.eq_ignore_ascii_case(&letter));
         smallest = min(smallest, polymerize(filtered).len())
     }
     Some(smallest)
