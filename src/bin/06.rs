@@ -44,7 +44,10 @@ pub fn part_one(input: &str) -> Option<usize> {
         // if they're not equidistant
         if !(distance(closest.1, &coord) == distance(second_closest.1, &coord)) {
             // add it to the sum for that region
-            region_sizes.entry(&closest.0).and_modify(|e| *e += 1).or_insert(1);
+            region_sizes
+                .entry(&closest.0)
+                .and_modify(|e| *e += 1)
+                .or_insert(1);
 
             if coord.left == 0 || coord.left == max_x || coord.top == 0 || coord.top == max_y {
                 on_edge.insert(closest.0);
@@ -63,7 +66,7 @@ pub fn part_one(input: &str) -> Option<usize> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-   let (_, coords) = parser(input).unwrap();
+    let (_, coords) = parser(input).unwrap();
 
     let mut max_x = 0;
     let mut max_y = 0;
