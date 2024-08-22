@@ -27,7 +27,7 @@ pub struct Claim {
 
 fn one_entry(i: &str) -> IResult<&str, Claim> {
     let (i, id) = preceded(tag("#"), number)(i)?;
-    let (i, location) =  preceded(tag(" @ "), coord_parse)(i)?;
+    let (i, location) = preceded(tag(" @ "), coord_parse)(i)?;
     let (i, (wide, tall)) = preceded(tag(": "), separated_pair(number, tag("x"), number))(i)?;
 
     Ok((

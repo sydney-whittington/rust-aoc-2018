@@ -14,7 +14,7 @@ pub fn number(i: &str) -> IResult<&str, u32> {
     map_res(digit1, u32::from_str)(i)
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Coordinate {
     pub left: u32,
     pub top: u32,
