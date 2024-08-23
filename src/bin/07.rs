@@ -54,7 +54,6 @@ fn make_graph(steps: Vec<Step>) -> HashMap<char, HashSet<char>> {
 
 fn check_next_step(graph: &HashMap<char, HashSet<char>>) -> Option<char> {
     let available_steps = graph.iter().filter(|(_, prereqs)| prereqs.len() == 0);
-    dbg!(available_steps.clone().collect::<Vec<_>>());
     let next_step = available_steps
         .sorted_by(|(step1, _), (step2, _)| step1.cmp(step2))
         .next();
@@ -99,6 +98,7 @@ pub fn part_two(input: &str) -> Option<u32> {
 
     // stubbornly not just looping over timesteps
     loop {
+        // maybe we could skip the conditional by using a toposort crate (after reading the reddit thread to learn that was a thing)
         while let Some(c) = check_next_step(&graph) {
             let new_job = match workers.pop().unwrap() {
                 Reverse(Some(t)) => dispatch_job(&c, max(t, *start_times.entry(c).or_insert(0))),
