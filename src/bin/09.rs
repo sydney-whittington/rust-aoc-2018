@@ -16,9 +16,7 @@ fn parser(i: &str) -> IResult<&str, (usize, usize)> {
     ))(i)
 }
 
-pub fn part_one(input: &str) -> Option<usize> {
-    let (_, (players, points)) = parser(input).unwrap();
-
+fn play_the_game(players: usize, points: usize) -> Option<usize> {
     let mut circle = VecDeque::from([0, 1]);
     let mut scores = HashMap::new();
 
@@ -38,8 +36,16 @@ pub fn part_one(input: &str) -> Option<usize> {
     scores.values().max().copied()
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+pub fn part_one(input: &str) -> Option<usize> {
+    let (_, (players, points)) = parser(input).unwrap();
+
+    play_the_game(players, points)
+}
+
+pub fn part_two(input: &str) -> Option<usize> {
+    let (_, (players, points)) = parser(input).unwrap();
+
+    play_the_game(players, points*100)
 }
 
 #[cfg(test)]
@@ -70,7 +76,9 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        // no new task, just a brute force countermeasure for part 2
+        // let result = part_two(&advent_of_code::template::read_file("examples", DAY));
+        // assert_eq!(result, None);
+        assert!(true);
     }
 }
