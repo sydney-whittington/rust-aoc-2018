@@ -14,6 +14,10 @@ pub fn number(i: &str) -> IResult<&str, u32> {
     map_res(digit1, u32::from_str)(i)
 }
 
+pub fn number_usize(i: &str) -> IResult<&str, usize> {
+    map_res(digit1, usize::from_str)(i)
+}
+
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Coordinate {
     pub left: u32,
