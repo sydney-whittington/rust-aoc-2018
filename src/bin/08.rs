@@ -29,7 +29,7 @@ impl Node {
             let mut value = 0;
             for pointer in self.metadata.iter() {
                 // subtract 1 for 1-indexed data
-                if let Some(n) = self.children.get(*pointer-1) {
+                if let Some(n) = self.children.get(*pointer - 1) {
                     value += n.sum_values();
                 }
             }
