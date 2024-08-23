@@ -84,7 +84,7 @@ pub fn part_one(input: &str) -> Option<String> {
 
 fn dispatch_job(c: &char, start_time: u32) -> u32 {
     // to_digit gives 0-indexed but numerals 0-9 are the values 0-9, so offset by minus 9
-    char::to_digit(*c, 36).unwrap() - 9 + 0 + start_time
+    char::to_digit(*c, 36).unwrap() - 9 + 60 + start_time
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
@@ -94,7 +94,7 @@ pub fn part_two(input: &str) -> Option<u32> {
     let mut start_times = HashMap::new();
 
     // settable number of workers
-    let mut workers = BinaryHeap::from_iter(iter::repeat(Reverse(None)).take(2));
+    let mut workers = BinaryHeap::from_iter(iter::repeat(Reverse(None)).take(5));
     let mut task_completions = Vec::new();
 
     // stubbornly not just looping over timesteps
@@ -105,19 +105,19 @@ pub fn part_two(input: &str) -> Option<u32> {
                 Reverse(None) => dispatch_job(&c, *start_times.entry(c).or_insert(0)),
             };
             workers.push(Reverse(Some(new_job)));
-            dbg!(c, new_job);
 
             // remove it from tasks to be done
             graph.remove(&c);
             // but save the completion for when we don't have something else to launch now
             task_completions.push((c, new_job));
         }
+
         // finish the next task
         task_completions.sort_by_key(|t| t.1);
         match task_completions.pop() {
             Some((finished, next_job)) => {
                 for (step, deps) in graph.iter_mut() {
-                    // and remove it from its dependencies, giving them a new possible start time
+                    // remove it from its dependencies, giving them a new possible start time
                     if deps.contains(&finished) {
                         start_times
                             .entry(*step)
@@ -146,24 +146,24 @@ mod tests {
     #[test]
     fn test_part_two() {
         // needs 2 workers instead of 5 and an offset of 0 instead of 60 for job duration
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, Some(15));
-        // assert!(true);
-    }
-
-    #[test]
-    fn test_letter_value_fast() {
-        assert_eq!(dispatch_job(&'a', 0), 1);
-        assert_eq!(dispatch_job(&'z', 0), 26);
-        assert_eq!(dispatch_job(&'a', 10), 11);
-        assert_eq!(dispatch_job(&'z', 10), 36);
+        // let result = part_two(&advent_of_code::template::read_file("examples", DAY));
+        // assert_eq!(result, Some(15));
+        assert!(true);
     }
 
     // #[test]
-    // fn test_letter_value() {
-    //     assert_eq!(dispatch_job(&'a', 0), 61);
-    //     assert_eq!(dispatch_job(&'z', 0), 86);
-    //     assert_eq!(dispatch_job(&'a', 10), 71);
-    //     assert_eq!(dispatch_job(&'z', 10), 96);
+    // fn test_letter_value_fast() {
+    //     assert_eq!(dispatch_job(&'a', 0), 1);
+    //     assert_eq!(dispatch_job(&'z', 0), 26);
+    //     assert_eq!(dispatch_job(&'a', 10), 11);
+    //     assert_eq!(dispatch_job(&'z', 10), 36);
     // }
+
+    #[test]
+    fn test_letter_value() {
+        assert_eq!(dispatch_job(&'a', 0), 61);
+        assert_eq!(dispatch_job(&'z', 0), 86);
+        assert_eq!(dispatch_job(&'a', 10), 71);
+        assert_eq!(dispatch_job(&'z', 10), 96);
+    }
 }
