@@ -45,7 +45,7 @@ pub fn part_one(input: &str) -> Option<usize> {
 pub fn part_two(input: &str) -> Option<usize> {
     let (_, (players, points)) = parser(input).unwrap();
 
-    play_the_game(players, points*100)
+    play_the_game(players, points * 100)
 }
 
 #[cfg(test)]

@@ -5,8 +5,11 @@ pub mod template;
 use std::str::FromStr;
 
 use nom::{
-    bytes::complete::tag, character::complete::digit1, combinator::map_res,
-    sequence::separated_pair, IResult,
+    bytes::complete::tag,
+    character::complete::{digit1, i32, multispace0},
+    combinator::map_res,
+    sequence::{preceded, separated_pair},
+    IResult,
 };
 
 // https://blog.adamchalmers.com/nom-chars/
@@ -18,13 +21,32 @@ pub fn number_usize(i: &str) -> IResult<&str, usize> {
     map_res(digit1, usize::from_str)(i)
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct Coordinate {
     pub left: u32,
     pub top: u32,
 }
 
 pub fn coord_parse(i: &str) -> IResult<&str, Coordinate> {
-    let (i, (left, top)) = separated_pair(number, tag(", "), number)(i)?;
+    let (i, (left, top)) = separated_pair(
+        preceded(multispace0, number),
+        tag(", "),
+        preceded(multispace0, number),
+    )(i)?;
     Ok((i, Coordinate { left, top }))
+}
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+pub struct CoordinateSigned {
+    pub x: i32,
+    pub y: i32,
+}
+
+pub fn coord_signed_parse(i: &str) -> IResult<&str, CoordinateSigned> {
+    let (i, (x, y)) = separated_pair(
+        preceded(multispace0, i32),
+        tag(", "),
+        preceded(multispace0, i32),
+    )(i)?;
+    Ok((i, CoordinateSigned { x, y }))
 }
