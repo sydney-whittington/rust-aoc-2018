@@ -99,7 +99,7 @@ pub fn part_two(input: &str) -> Option<Output2> {
             if power > best_power {
                 best_power = power;
                 // not totally sure why we're off by one here but meh
-                best = Output2(x+1, y+1, s);
+                best = Output2(x + 1, y + 1, s);
             }
         }
     }
