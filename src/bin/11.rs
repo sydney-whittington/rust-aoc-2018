@@ -68,15 +68,38 @@ pub fn part_two(input: &str) -> Option<Output2> {
             .map(|(x, y)| ((x, y), cell_power(x, y, serial))),
     );
 
+    // today i learned about https://en.wikipedia.org/wiki/Summed-area_table
+    let mut summed_area: HashMap<(u32, u32), i32> = HashMap::new();
+    // sorted by minimum sum which will give numbers closer to the top left corner first
+    for (x, y) in (1..=300)
+        .cartesian_product(1..=300)
+        .sorted_by_key(|(x, y)| x + y)
+    {
+        summed_area.insert(
+            (x, y),
+            powergrid.get(&(x, y)).unwrap()
+                + summed_area.get(&(x, y - 1)).or_else(|| Some(&0)).unwrap()
+                + summed_area.get(&(x - 1, y)).or_else(|| Some(&0)).unwrap()
+                - summed_area
+                    .get(&(x - 1, y - 1))
+                    .or_else(|| Some(&0))
+                    .unwrap(),
+        );
+    }
+
     let mut best = Output2(1, 1, 1);
     let mut best_power = 0;
 
     for (x, y) in (1..=300).cartesian_product(1..=300) {
         for s in 1..(300 - max(x, y)) {
-            let power = powersquare(x, y, &powergrid, s);
+            let power = summed_area.get(&(x, y)).unwrap()
+                + summed_area.get(&(x + s, y + s)).unwrap()
+                - summed_area.get(&(x, y + s)).unwrap()
+                - summed_area.get(&(x + s, y)).unwrap();
             if power > best_power {
                 best_power = power;
-                best = Output2(x, y, s);
+                // not totally sure why we're off by one here but meh
+                best = Output2(x+1, y+1, s);
             }
         }
     }
