@@ -1,8 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet},
-    fmt,
-    hash::Hash,
-};
+use std::{collections::HashSet, fmt, hash::Hash};
 
 use itertools::Itertools;
 use nom::{
@@ -46,58 +42,55 @@ fn one_rule(i: &str) -> IResult<&str, (Rule, Pot)> {
 
 fn parser(i: &str) -> IResult<&str, (Vec<Pot>, HashSet<Rule>)> {
     let (i, initial) = preceded(tag("initial state: "), many1(pot))(i)?;
-    // add extra elements to represent the infinite pots off into the distance at the start and finish
-    let initial = vec![Pot::E, Pot::E]
-        .into_iter()
-        .chain(initial.into_iter())
-        .chain(vec![Pot::E, Pot::E])
-        .collect_vec();
 
     let (i, rules) = preceded(multispace1, separated_list1(newline, one_rule))(i)?;
 
+    // remove all rules that yield empty pots so that if it's in the dictionary, it's a plant rule
     let rules = HashSet::from_iter(
         rules
             .into_iter()
             .filter(|(_, p)| matches!(p, Pot::P))
             .map(|(r, _)| r),
     );
-    // remove all rules that yield empty pots so that if it's in the dictionary, it's a pot rule
+
     Ok((i, (initial, rules)))
 }
 
-fn next_state(current_state: &Vec<Pot>, rules: &HashSet<Rule>) -> Vec<Pot> {
-    let mut next: Vec<Pot> = vec![Pot::E, Pot::E];
-    // TODO: is this really the best way to do this lookup? that's a lot of derefs
-    for (a, b, c, d, e) in current_state.iter().tuple_windows() {
-        next.push(match rules.contains(&(*a, *b, *c, *d, *e)) {
-            true => Pot::P,
-            false => Pot::E,
-        });
+fn next_state(current_state: &HashSet<i32>, rules: &HashSet<Rule>) -> HashSet<i32> {
+    let mut next: HashSet<i32> = HashSet::new();
+    let (min, max) = current_state.iter().minmax().into_option().unwrap();
+    for value in min - 2..=max + 2 {
+        let pots = (value - 2..=value + 2)
+            .map(|i| current_state.contains(&i))
+            .map(|b| match b {
+                true => Pot::P,
+                false => Pot::E,
+            })
+            .collect_tuple()
+            .unwrap();
+        if rules.contains(&pots) {
+            next.insert(value);
+        }
     }
-
-    // TODO: jk it can just keep growing i guess
-    next.extend(vec![Pot::E, Pot::E]);
     next
 }
 
-pub fn part_one(input: &str) -> Option<usize> {
-    let (_, (mut state, rules)) = parser(input).unwrap();
-    dbg!(&state, &rules);
+pub fn part_one(input: &str) -> Option<i32> {
+    let (_, (initial, rules)) = parser(input).unwrap();
+    // map the initial vector into just the pot locations
+    let mut state = HashSet::from_iter(
+        initial
+            .into_iter()
+            .enumerate()
+            .filter(|(_, x)| matches!(x, Pot::P))
+            .map(|(i, _)| i.try_into().unwrap()),
+    );
 
     for _ in 0..20 {
         state = next_state(&state, &rules);
-        println!("{}", state.iter().join(""));
     }
 
-    // count pot indices after removing our placeholder ones at the front
-    Some(
-        state
-            .iter()
-            .enumerate()
-            .filter(|(_, &p)| matches!(p, Pot::P))
-            .map(|(i, _)| i - 1)
-            .sum(),
-    )
+    Some(state.iter().sum())
 }
 
 pub fn part_two(_input: &str) -> Option<u32> {
