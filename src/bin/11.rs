@@ -1,17 +1,25 @@
 advent_of_code::solution!(11);
 
-use std::{collections::HashMap, fmt, str::FromStr};
+use std::{cmp::max, collections::HashMap, fmt, str::FromStr};
 
 use itertools::Itertools;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Output(u32, u32);
 
+#[derive(Debug, PartialEq, Eq)]
+pub struct Output2(u32, u32, u32);
+
 // since every result type has to be formattable and our tuple isn't
 impl fmt::Display for Output {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // Use `self.number` to refer to each positional data point.
         write!(f, "({}, {})", self.0, self.1)
+    }
+}
+
+impl fmt::Display for Output2 {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({}, {}, {})", self.0, self.1, self.2)
     }
 }
 
@@ -30,8 +38,11 @@ fn cell_power(x: u32, y: u32, serial: u32) -> i32 {
     power - 5
 }
 
-fn powersquare(x: u32, y: u32, grid: &HashMap<(u32, u32), i32>) -> i32 {
-    (x..=x+2).cartesian_product(y..=y+2).map(|k| grid.get(&k).unwrap()).sum()
+fn powersquare(x: u32, y: u32, grid: &HashMap<(u32, u32), i32>, size: u32) -> i32 {
+    (x..x + size)
+        .cartesian_product(y..y + size)
+        .map(|k| grid.get(&k).unwrap())
+        .sum()
 }
 
 pub fn part_one(input: &str) -> Option<Output> {
@@ -42,12 +53,34 @@ pub fn part_one(input: &str) -> Option<Output> {
             .map(|(x, y)| ((x, y), cell_power(x, y, serial))),
     );
 
-    let (x, y) = ((1..=298).cartesian_product(1..=298).max_by_key(|(x, y)| powersquare(*x, *y, &powergrid))).unwrap();
+    let (x, y) = ((1..=298)
+        .cartesian_product(1..=298)
+        .max_by_key(|(x, y)| powersquare(*x, *y, &powergrid, 3)))
+    .unwrap();
     Some(Output(x, y))
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<Output2> {
+    let serial = u32::from_str(input.trim_end()).unwrap();
+    let powergrid: HashMap<(u32, u32), i32> = HashMap::from_iter(
+        (1..=300)
+            .cartesian_product(1..=300)
+            .map(|(x, y)| ((x, y), cell_power(x, y, serial))),
+    );
+
+    let mut best = Output2(1, 1, 1);
+    let mut best_power = 0;
+
+    for (x, y) in (1..=300).cartesian_product(1..=300) {
+        for s in 1..(300 - max(x, y)) {
+            let power = powersquare(x, y, &powergrid, s);
+            if power > best_power {
+                best_power = power;
+                best = Output2(x, y, s);
+            }
+        }
+    }
+    Some(best)
 }
 
 #[cfg(test)]
@@ -83,6 +116,14 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(Output2(90, 269, 16)));
+    }
+
+    #[test]
+    fn test_part_two_a() {
+        let result = part_two(&advent_of_code::template::read_file_part(
+            "examples", DAY, 1,
+        ));
+        assert_eq!(result, Some(Output2(232, 251, 12)));
     }
 }
