@@ -1,7 +1,7 @@
 advent_of_code::solution!(10);
 
-use std::{collections::HashMap, i32};
 use std::iter::repeat;
+use std::{collections::HashMap, i32};
 
 use advent_of_code::{coord_signed_parse, CoordinateSigned};
 use itertools::Itertools;
@@ -35,7 +35,8 @@ impl Corners {
     }
 
     fn size(&self) -> i64 {
-        (self.bottom_right.x - self.top_left.x) as i64 * (self.bottom_right.y - self.top_left.y) as i64
+        (self.bottom_right.x - self.top_left.x) as i64
+            * (self.bottom_right.y - self.top_left.y) as i64
     }
 }
 
@@ -112,8 +113,7 @@ pub fn part_one(input: &str) -> Option<String> {
         let current_size = get_corners(&lights).size();
         if current_size < previous_size {
             previous_size = current_size;
-        }
-        else {
+        } else {
             retreat(&mut lights);
             break;
         }
@@ -154,9 +154,7 @@ pub fn part_two(input: &str) -> Option<u32> {
         if current_size < previous_size {
             previous_size = current_size;
             steps += 1;
-        }
-        else {
-            retreat(&mut lights);
+        } else {
             break;
         }
     }
