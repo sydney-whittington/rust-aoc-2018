@@ -143,8 +143,25 @@ pub fn part_one(input: &str) -> Option<String> {
     Some("hi".to_string())
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<u32> {
+    let (_, mut lights) = parser(input).unwrap();
+
+    let mut previous_size = get_corners(&lights).size();
+    let mut steps = 0;
+    loop {
+        advance(&mut lights);
+        let current_size = get_corners(&lights).size();
+        if current_size < previous_size {
+            previous_size = current_size;
+            steps += 1;
+        }
+        else {
+            retreat(&mut lights);
+            break;
+        }
+    }
+
+    Some(steps)
 }
 
 #[cfg(test)]
@@ -161,6 +178,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(3));
     }
 }
