@@ -1,6 +1,6 @@
 advent_of_code::solution!(10);
 
-use std::collections::HashMap;
+use std::{collections::HashMap, i32};
 use std::iter::repeat;
 
 use advent_of_code::{coord_signed_parse, CoordinateSigned};
@@ -33,22 +33,16 @@ impl Corners {
     fn ys(&self) -> impl Iterator<Item = i32> {
         self.top_left.y..=self.bottom_right.y
     }
+
+    fn size(&self) -> i64 {
+        (self.bottom_right.x - self.top_left.x) as i64 * (self.bottom_right.y - self.top_left.y) as i64
+    }
 }
 
 #[derive(Debug)]
 struct Sky {
     space: HashMap<(i32, i32), char>,
     corners: Corners,
-}
-
-impl Sky {
-    fn clear_skies(&mut self) -> () {
-        self.space = HashMap::from_iter(
-            (self.corners.xs())
-                .cartesian_product(self.corners.ys().collect::<Vec<_>>())
-                .zip(repeat('.')),
-        );
-    }
 }
 
 fn one_entry(i: &str) -> IResult<&str, Light> {
@@ -62,33 +56,7 @@ fn parser(i: &str) -> IResult<&str, Vec<Light>> {
     separated_list0(newline, one_entry)(i)
 }
 
-fn skygaze(sky: &Sky) -> () {
-    for column in sky.corners.ys() {
-        for row in sky.corners.xs() {
-            print!("{}", sky.space.get(&(row, column)).unwrap());
-        }
-        println!();
-    }
-    println!();
-}
-
-fn advance(sky: &mut Sky, lights: &mut Vec<Light>) -> () {
-    // i bet there's a better way to not throw it away at each step but this is probably fine
-    // we just don't want to do it all at once and accidentally remove something we just placed
-    sky.clear_skies();
-
-    // no vector iterators for us here (https://stackoverflow.com/questions/49143770/efficiently-mutate-a-vector-while-also-iterating-over-the-same-vector)
-    for i in 0..lights.len() {
-        lights[i].position.x += lights[i].velocity.x;
-        lights[i].position.y += lights[i].velocity.y;
-        sky.space
-            .entry((lights[i].position.x, lights[i].position.y))
-            .and_modify(|e| *e = '#');
-    }
-}
-
-pub fn part_one(input: &str) -> Option<String> {
-    let (_, mut lights) = parser(input).unwrap();
+fn get_corners(lights: &Vec<Light>) -> Corners {
     let (min_x, max_x) = lights
         .iter()
         .map(|l| l.position.x)
@@ -102,10 +70,57 @@ pub fn part_one(input: &str) -> Option<String> {
         .into_option()
         .unwrap();
 
-    let corners = Corners {
+    Corners {
         top_left: CoordinateSigned { x: min_x, y: min_y },
         bottom_right: CoordinateSigned { x: max_x, y: max_y },
-    };
+    }
+}
+
+fn skygaze(sky: &Sky) -> () {
+    for column in sky.corners.ys() {
+        for row in sky.corners.xs() {
+            print!("{}", sky.space.get(&(row, column)).unwrap());
+        }
+        println!();
+    }
+    println!();
+}
+
+fn advance(lights: &mut Vec<Light>) -> () {
+    // no vector iterators for us here (https://stackoverflow.com/questions/49143770/efficiently-mutate-a-vector-while-also-iterating-over-the-same-vector)
+    for i in 0..lights.len() {
+        lights[i].position.x += lights[i].velocity.x;
+        lights[i].position.y += lights[i].velocity.y;
+    }
+}
+
+// for when we overshoot so we don't have to store the whole array at each step just in case
+fn retreat(lights: &mut Vec<Light>) -> () {
+    for i in 0..lights.len() {
+        lights[i].position.x -= lights[i].velocity.x;
+        lights[i].position.y -= lights[i].velocity.y;
+    }
+}
+
+pub fn part_one(input: &str) -> Option<String> {
+    let (_, mut lights) = parser(input).unwrap();
+
+    // find where the bounding box is the smallest
+    let mut previous_size = get_corners(&lights).size();
+    loop {
+        advance(&mut lights);
+        let current_size = get_corners(&lights).size();
+        if current_size < previous_size {
+            previous_size = current_size;
+        }
+        else {
+            retreat(&mut lights);
+            break;
+        }
+    }
+
+    // and finally, display the sky
+    let corners = get_corners(&lights);
     let mut sky = Sky {
         space: HashMap::from_iter(
             (corners.xs())
@@ -123,12 +138,9 @@ pub fn part_one(input: &str) -> Option<String> {
             .and_modify(|e| *e = '#');
     }
 
-    for _ in 0..4 {
-        skygaze(&sky);
-        advance(&mut sky, &mut lights);
-    }
+    skygaze(&sky);
 
-    Some("hello".to_string())
+    Some("hi".to_string())
 }
 
 pub fn part_two(_input: &str) -> Option<u32> {
@@ -141,6 +153,7 @@ mod tests {
 
     #[test]
     fn test_part_one() {
+        // there's not really a way to programmatically test this without a human involved or doing extra recognition work
         let result = part_one(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some("hi".to_string()));
     }
