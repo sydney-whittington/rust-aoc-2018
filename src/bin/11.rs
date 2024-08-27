@@ -3,19 +3,10 @@ advent_of_code::solution!(11);
 use std::{cmp::max, collections::HashMap, fmt, str::FromStr};
 
 use itertools::Itertools;
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct Output(u32, u32);
+use advent_of_code::Output;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Output2(u32, u32, u32);
-
-// since every result type has to be formattable and our tuple isn't
-impl fmt::Display for Output {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({}, {})", self.0, self.1)
-    }
-}
 
 impl fmt::Display for Output2 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
