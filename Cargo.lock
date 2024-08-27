@@ -23,6 +23,7 @@ version = "0.11.0"
 dependencies = [
  "chrono",
  "dhat",
+ "frozenset",
  "itertools",
  "levenshtein",
  "nom",
@@ -134,6 +135,12 @@ name = "either"
 version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60b1af1c220855b6ceac025d3f6ecdd2b7c4894bfe9cd9bda4fbb4bc7c0d4cf0"
+
+[[package]]
+name = "frozenset"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e5b110328f46621e69076da1a5780b17bd8f6035dc27676bc13c03af5717da8b"
 
 [[package]]
 name = "gimli"
