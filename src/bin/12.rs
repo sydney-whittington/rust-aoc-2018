@@ -75,6 +75,25 @@ fn next_state(current_state: &HashSet<i32>, rules: &HashSet<Rule>) -> HashSet<i3
     next
 }
 
+fn next_state64(current_state: &HashSet<i64>, rules: &HashSet<Rule>) -> HashSet<i64> {
+    let mut next: HashSet<i64> = HashSet::new();
+    let (min, max) = current_state.iter().minmax().into_option().unwrap();
+    for value in min - 2..=max + 2 {
+        let pots = (value - 2..=value + 2)
+            .map(|i| current_state.contains(&i))
+            .map(|b| match b {
+                true => Pot::P,
+                false => Pot::E,
+            })
+            .collect_tuple()
+            .unwrap();
+        if rules.contains(&pots) {
+            next.insert(value);
+        }
+    }
+    next
+}
+
 pub fn part_one(input: &str) -> Option<i32> {
     let (_, (initial, rules)) = parser(input).unwrap();
     // map the initial vector into just the pot locations
@@ -93,8 +112,23 @@ pub fn part_one(input: &str) -> Option<i32> {
     Some(state.iter().sum())
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<i64> {
+    let (_, (initial, rules)) = parser(input).unwrap();
+    // map the initial vector into just the pot locations
+    let mut state = HashSet::from_iter(
+        initial
+            .into_iter()
+            .enumerate()
+            .filter(|(_, x)| matches!(x, Pot::P))
+            .map(|(i, _)| i.try_into().unwrap()),
+    );
+
+    // this totally works...
+    for _ in 0..50000000000 as u64{
+        state = next_state64(&state, &rules);
+    }
+
+    Some(state.iter().sum())
 }
 
 #[cfg(test)]
