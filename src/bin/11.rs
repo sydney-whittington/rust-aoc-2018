@@ -2,8 +2,8 @@ advent_of_code::solution!(11);
 
 use std::{cmp::max, collections::HashMap, fmt, str::FromStr};
 
-use itertools::Itertools;
 use advent_of_code::Output;
+use itertools::Itertools;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Output2(u32, u32, u32);

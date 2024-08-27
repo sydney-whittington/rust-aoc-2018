@@ -22,12 +22,12 @@ pub fn number_usize(i: &str) -> IResult<&str, usize> {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
-pub struct Coordinate {
-    pub left: u32,
-    pub top: u32,
+pub struct Coordinate<T> {
+    pub left: T,
+    pub top: T,
 }
 
-pub fn coord_parse(i: &str) -> IResult<&str, Coordinate> {
+pub fn coord_parse(i: &str) -> IResult<&str, Coordinate<u32>> {
     let (i, (left, top)) = separated_pair(
         preceded(multispace0, number),
         tag(", "),
@@ -36,6 +36,7 @@ pub fn coord_parse(i: &str) -> IResult<&str, Coordinate> {
     Ok((i, Coordinate { left, top }))
 }
 
+// this needs a different one because it's center-referenced instead of corner
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct CoordinateSigned {
     pub x: i32,

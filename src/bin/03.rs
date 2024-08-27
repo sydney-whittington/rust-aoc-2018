@@ -21,7 +21,7 @@ pub struct Size {
 #[derive(Debug)]
 pub struct Claim {
     pub id: u32,
-    pub location: Coordinate,
+    pub location: Coordinate<u32>,
     pub size: Size,
 }
 

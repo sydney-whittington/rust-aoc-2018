@@ -7,11 +7,11 @@ use advent_of_code::{coord_parse, Coordinate};
 use itertools::Itertools;
 use nom::{character::complete::newline, multi::separated_list0, IResult};
 
-fn parser(i: &str) -> IResult<&str, Vec<Coordinate>> {
+fn parser(i: &str) -> IResult<&str, Vec<Coordinate<u32>>> {
     separated_list0(newline, coord_parse)(i)
 }
 
-fn distance(a: &Coordinate, b: &Coordinate) -> u32 {
+fn distance(a: &Coordinate<u32>, b: &Coordinate<u32>) -> u32 {
     a.left.abs_diff(b.left) + a.top.abs_diff(b.top)
 }
 
