@@ -2,7 +2,10 @@ pub mod template;
 
 // Use this file to add helper functions and additional modules.
 
-use std::{fmt, str::FromStr};
+use std::{
+    fmt::{self},
+    str::FromStr,
+};
 
 use nom::{
     bytes::complete::tag,
@@ -53,10 +56,16 @@ pub fn coord_signed_parse(i: &str) -> IResult<&str, CoordinateSigned> {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Output(pub u32, pub u32);
+pub struct Output<T>(pub T, pub T);
 
 // since every result type has to be formattable and our tuple isn't
-impl fmt::Display for Output {
+impl fmt::Display for Output<usize> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({}, {})", self.0, self.1)
+    }
+}
+
+impl fmt::Display for Output<u32> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "({}, {})", self.0, self.1)
     }
