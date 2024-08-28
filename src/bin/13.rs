@@ -1,4 +1,4 @@
-use std::{collections::HashMap, error::Error, fmt};
+use std::{collections::{HashMap, HashSet}, error::Error, fmt};
 
 use advent_of_code::{Coordinate, Output};
 use itertools::Itertools;
@@ -168,6 +168,43 @@ fn next_state(state: &AllCarts, map: &CartMap) -> Result<AllCarts, CartCrash> {
     Ok(next_state)
 }
 
+fn next_state_removal(state: &AllCarts, map: &CartMap) -> AllCarts {
+    let mut next_state = AllCarts::new();
+    let mut known_collisions: HashSet<Coordinate<usize>> = HashSet::new();
+
+    // sort by multiple fields lexicographically (https://stackoverflow.com/questions/70193935/how-to-sort-a-vec-of-structs-by-2-or-multiple-fields)
+    for (coord, cart) in state
+        .iter()
+        .sorted_unstable_by_key(|&a| (a.0.top, a.0.left))
+    {
+        if known_collisions.contains(coord) {
+            // if we already collided this time step, don't add it to next round
+            // but if they collide then the intersection is clear so the third cart is fine
+            known_collisions.remove(coord);
+            continue;
+        }
+
+        let new_coord = new_location(coord, &cart);
+        let new_cart = new_facing(&new_coord, cart, map);
+
+        if state.contains_key(&new_coord) {
+            // it hits it only if, in sorting order, it has moved first
+            // otherwise it's already out of the way
+            if (coord.top, coord.left) < (new_coord.top, new_coord.left) {
+                // we've collided before it moved, skip adding this one
+                known_collisions.insert(new_coord);
+                continue;
+            }
+        }
+
+        if let Some(_) = next_state.insert(new_coord, new_cart) {
+            next_state.remove(&new_coord);
+        }
+    }
+
+    next_state
+}
+
 pub fn part_one(input: &str) -> Option<Output<usize>> {
     let (map, mut state) = parser(input);
 
@@ -179,8 +216,16 @@ pub fn part_one(input: &str) -> Option<Output<usize>> {
     }
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<Output<usize>> {
+    let (map, mut state) = parser(input);
+
+    loop {
+        state = next_state_removal(&state, &map);
+        if state.len() == 1 {
+            let (only_element, _) = state.drain().take(1).next().unwrap();
+            return Some(Output(only_element.left, only_element.top));
+        }
+    }
 }
 
 #[cfg(test)]
@@ -205,7 +250,7 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        let result = part_two(&advent_of_code::template::read_file_part("examples", DAY, 2));
+        assert_eq!(result, Some(Output(6, 4)));
     }
 }

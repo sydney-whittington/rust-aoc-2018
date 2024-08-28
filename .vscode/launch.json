@@ -28,7 +28,7 @@
                 "args": [
                     "build",
                     // replace `01` here with the solution you like to debug.
-                    "--bin=10",
+                    "--bin=13",
                     "--package=advent_of_code"
                 ],
             },
