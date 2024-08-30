@@ -1,4 +1,8 @@
-use std::{collections::{HashMap, HashSet}, error::Error, fmt};
+use std::{
+    collections::{HashMap, HashSet},
+    error::Error,
+    fmt,
+};
 
 use advent_of_code::{Coordinate, Output};
 use itertools::Itertools;
@@ -250,7 +254,9 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file_part("examples", DAY, 2));
+        let result = part_two(&advent_of_code::template::read_file_part(
+            "examples", DAY, 2,
+        ));
         assert_eq!(result, Some(Output(6, 4)));
     }
 }
