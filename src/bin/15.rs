@@ -500,6 +500,7 @@ pub fn part_one(input: &str) -> Option<u64> {
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
+    // this doesn't actually work RIP, should be 55160
     Some(save_the_elves(State::load(input).unwrap()).unwrap())
 }
 pub struct Display<'a>(&'a State);
