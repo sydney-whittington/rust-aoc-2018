@@ -1,11 +1,11 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use advent_of_code::number_usize;
-use enum_iterator::{all, Sequence};
+use enum_iterator::{all, cardinality, Sequence};
 use nom::{
     bytes::complete::tag,
     character::complete::newline,
-    multi::separated_list0,
+    multi::{many0, separated_list0},
     sequence::{delimited, preceded, terminated},
     IResult,
 };
@@ -56,6 +56,62 @@ enum Opcode {
     eqir,
     eqri,
     eqrr,
+}
+
+fn parse_instruction(i: &str) -> IResult<&str, UnknownInstruction> {
+    let (i, instruction) = terminated(separated_list0(tag(" "), number_usize), newline)(i)?;
+    if instruction.len() != 4 {
+        dbg!(&i);
+    }
+
+    Ok((
+        i,
+        UnknownInstruction {
+            opcode: instruction[0],
+            input1: instruction[1],
+            input2: instruction[2],
+            output: instruction[3],
+        },
+    ))
+}
+
+fn parse_capture(i: &str) -> IResult<&str, Capture> {
+    let (i, before) = terminated(
+        preceded(
+            tag("Before: "),
+            delimited(tag("["), separated_list0(tag(", "), number_usize), tag("]")),
+        ),
+        newline,
+    )(i)?;
+    let before = before.try_into().expect("before not 4 elements");
+
+    let (i, instruction) = parse_instruction(i)?;
+
+    let (i, after) = terminated(
+        preceded(
+            tag("After:  "),
+            delimited(tag("["), separated_list0(tag(", "), number_usize), tag("]")),
+        ),
+        newline,
+    )(i)?;
+    let after = after.try_into().expect("after not 4 elements");
+
+    Ok((
+        i,
+        Capture {
+            before,
+            instruction,
+            after,
+        },
+    ))
+}
+
+fn parser(i: &str) -> IResult<&str, Vec<Capture>> {
+    separated_list0(newline, parse_capture)(i)
+}
+
+fn parser_part_two(i: &str) -> IResult<&str, Vec<UnknownInstruction>> {
+    many0(parse_instruction)(i)
 }
 
 fn execute_instruction(registers: Registers, instruction: Instruction) -> Registers {
@@ -141,55 +197,67 @@ fn possibilities(capture: &Capture) -> HashSet<Opcode> {
 
     possibilities
 }
-
-fn parse_capture(i: &str) -> IResult<&str, Capture> {
-    let (i, before) = terminated(
-        preceded(
-            tag("Before: "),
-            delimited(tag("["), separated_list0(tag(", "), number_usize), tag("]")),
-        ),
-        newline,
-    )(i)?;
-    let before = before.try_into().expect("before not 4 elements");
-
-    let (i, instruction) = terminated(separated_list0(tag(" "), number_usize), newline)(i)?;
-
-    let (i, after) = terminated(
-        preceded(
-            tag("After:  "),
-            delimited(tag("["), separated_list0(tag(", "), number_usize), tag("]")),
-        ),
-        newline,
-    )(i)?;
-    let after = after.try_into().expect("after not 4 elements");
-
-    Ok((
-        i,
-        Capture {
-            before,
-            instruction: UnknownInstruction {
-                opcode: instruction[0],
-                input1: instruction[1],
-                input2: instruction[2],
-                output: instruction[3],
-            },
-            after,
-        },
-    ))
-}
-
-fn parser(i: &str) -> IResult<&str, Vec<Capture>> {
-    separated_list0(newline, parse_capture)(i)
-}
-
 pub fn part_one(input: &str) -> Option<usize> {
     let (_, captures) = parser(input).unwrap();
 
-    Some(captures.iter().filter(|&c| possibilities(c).len() >= 3).count())
+    Some(
+        captures
+            .iter()
+            .filter(|&c| possibilities(c).len() >= 3)
+            .count(),
+    )
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let (remainder, captures) = parser(input).unwrap();
+    let (_, instructions) = parser_part_two(remainder.trim_start()).unwrap();
+
+    // what opcode could each number be?
+    let mut guesses: HashMap<usize, HashSet<Opcode>> =
+        captures
+            .iter()
+            .fold(HashMap::new(), |mut lookups, capture| {
+                lookups
+                    .entry(capture.instruction.opcode)
+                    .and_modify(|s| {
+                        let current_possiblities = possibilities(capture);
+                        s.retain(|item| current_possiblities.contains(item));
+                    })
+                    .or_insert(possibilities(capture));
+                lookups
+            });
+
+    let mut opcode_mappings: HashMap<usize, Opcode> = HashMap::new();
+
+    // process of elimination to find each one with only one option
+    for _ in 0..cardinality::<Opcode>() {
+        let (number, name_set) = guesses
+            .iter()
+            .find(|a| a.1.len() == 1)
+            .expect("incomplete information");
+        let name = name_set.iter().next().unwrap().clone();
+
+        opcode_mappings.insert(*number, name);
+        guesses.remove(&number.clone());
+        for (_, possiblities) in guesses.iter_mut() {
+            possiblities.remove(&name);
+        }
+    }
+
+    // finally, run the instructions
+    let mut registers = [0, 0, 0, 0];
+    for instruction in instructions {
+        let decoded = Instruction {
+            opcode: opcode_mappings[&instruction.opcode],
+            input1: instruction.input1,
+            input2: instruction.input2,
+            output: instruction.output,
+        };
+
+        registers = execute_instruction(registers, decoded);
+    }
+
+    Some(registers[0])
 }
 
 #[cfg(test)]
