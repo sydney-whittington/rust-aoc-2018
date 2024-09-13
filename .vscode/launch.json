@@ -13,7 +13,7 @@
                     "test",
                     "--no-run",
                     // replace `01` here with the solution you like to debug.
-                    "--bin=13",
+                    "--bin=16",
                     "--package=advent_of_code"
                 ],
             },
