@@ -115,7 +115,7 @@ fn parser_part_two(i: &str) -> IResult<&str, Vec<UnknownInstruction>> {
 }
 
 fn execute_instruction(registers: Registers, instruction: Instruction) -> Registers {
-    let mut registers = registers.clone();
+    let mut registers = registers;
 
     match instruction.opcode {
         Opcode::addr => {
@@ -183,7 +183,7 @@ fn possibilities(capture: &Capture) -> HashSet<Opcode> {
         let output = execute_instruction(
             capture.before,
             Instruction {
-                opcode: opcode.clone(),
+                opcode,
                 input1: capture.instruction.input1,
                 input2: capture.instruction.input2,
                 output: capture.instruction.output,
@@ -235,7 +235,7 @@ pub fn part_two(input: &str) -> Option<usize> {
             .iter()
             .find(|a| a.1.len() == 1)
             .expect("incomplete information");
-        let name = name_set.iter().next().unwrap().clone();
+        let name = *name_set.iter().next().unwrap();
 
         opcode_mappings.insert(*number, name);
         guesses.remove(&number.clone());

@@ -21,10 +21,7 @@ fn cell_power(x: u32, y: u32, serial: u32) -> i32 {
     let power = power * rack_id;
     let powerstring = power.to_string();
     let hundreds = powerstring.get(powerstring.len() - 3..powerstring.len() - 2);
-    let power = hundreds
-        .and_then(|c| Some(i32::from_str(c).unwrap()))
-        .or_else(|| Some(0))
-        .unwrap();
+    let power = hundreds.map(|c| i32::from_str(c).unwrap()).unwrap_or(0);
 
     power - 5
 }
@@ -69,12 +66,9 @@ pub fn part_two(input: &str) -> Option<Output3> {
         summed_area.insert(
             (x, y),
             powergrid.get(&(x, y)).unwrap()
-                + summed_area.get(&(x, y - 1)).or_else(|| Some(&0)).unwrap()
-                + summed_area.get(&(x - 1, y)).or_else(|| Some(&0)).unwrap()
-                - summed_area
-                    .get(&(x - 1, y - 1))
-                    .or_else(|| Some(&0))
-                    .unwrap(),
+                + summed_area.get(&(x, y - 1)).unwrap_or(&0)
+                + summed_area.get(&(x - 1, y)).unwrap_or(&0)
+                - summed_area.get(&(x - 1, y - 1)).unwrap_or(&0),
         );
     }
 

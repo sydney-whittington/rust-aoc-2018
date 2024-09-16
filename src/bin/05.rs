@@ -7,7 +7,7 @@ use std::cmp::min;
 // and also that there's probably an easier way to do it
 
 fn can_react(a: &u8, b: &u8) -> bool {
-    a.eq_ignore_ascii_case(&b) && a != b
+    a.eq_ignore_ascii_case(b) && a != b
 }
 
 fn polymerize<'a>(i: impl Iterator<Item = &'a u8>) -> Vec<u8> {
@@ -16,7 +16,7 @@ fn polymerize<'a>(i: impl Iterator<Item = &'a u8>) -> Vec<u8> {
         match s.last() {
             None => s.push(*c),
             Some(&p) => {
-                if can_react(&c, &p) {
+                if can_react(c, &p) {
                     s.pop();
                 } else {
                     s.push(*c);
@@ -35,7 +35,7 @@ pub fn part_one(input: &str) -> Option<usize> {
 pub fn part_two(input: &str) -> Option<usize> {
     let polymer = polymerize(input.trim().as_bytes().iter());
     let mut smallest = usize::MAX;
-    for letter in b'a'..b'z' {
+    for letter in b'a'..=b'z' {
         let filtered = polymer.iter().filter(|c| !c.eq_ignore_ascii_case(&letter));
         smallest = min(smallest, polymerize(filtered).len())
     }

@@ -15,7 +15,7 @@ impl Iterator for Recipes {
     type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.cached.len() > 0 {
+        if !self.cached.is_empty() {
             return self.cached.pop_front();
         }
 

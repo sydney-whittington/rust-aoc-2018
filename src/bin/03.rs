@@ -65,7 +65,7 @@ pub fn part_two(input: &str) -> Option<u32> {
     let mut clean_ids = HashSet::new();
 
     for claim in claims.iter() {
-        clean_ids.insert(claim.id.clone());
+        clean_ids.insert(claim.id);
         for (x, y) in (claim.location.left..(claim.location.left + claim.size.wide))
             .cartesian_product(claim.location.top..(claim.location.top + claim.size.tall))
         {
@@ -73,7 +73,7 @@ pub fn part_two(input: &str) -> Option<u32> {
             if fabric.contains_key(&(x, y)) {
                 let (_, prev_owner) = fabric.get(&(x, y)).unwrap();
                 clean_ids.remove(&claim.id);
-                clean_ids.remove(&prev_owner);
+                clean_ids.remove(prev_owner);
             }
             fabric
                 .entry((x, y))

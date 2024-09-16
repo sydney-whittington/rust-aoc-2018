@@ -42,7 +42,7 @@ pub fn part_one(input: &str) -> Option<usize> {
             .next_tuple()
             .unwrap();
         // if they're not equidistant
-        if !(distance(closest.1, &coord) == distance(second_closest.1, &coord)) {
+        if distance(closest.1, &coord) != distance(second_closest.1, &coord) {
             // add it to the sum for that region
             region_sizes
                 .entry(&closest.0)
@@ -55,13 +55,12 @@ pub fn part_one(input: &str) -> Option<usize> {
         }
     }
     Some(
-        region_sizes
+        *region_sizes
             .iter()
             .filter(|&r| !on_edge.contains(r.0))
             .max_by(|a, b| a.1.cmp(b.1))
             .unwrap()
-            .1
-            .clone(),
+            .1,
     )
 }
 

@@ -17,17 +17,17 @@ pub fn part_one(input: &str) -> Option<usize> {
     let two = boxes
         .iter()
         .map(|v| v.chars().counts().values().any(|&x| x == 2))
-        .filter(|x| *x == true)
+        .filter(|x| *x)
         .count();
     let three = boxes
         .iter()
         .map(|v| v.chars().counts().values().any(|&x| x == 3))
-        .filter(|x| *x == true)
+        .filter(|x| *x)
         .count();
     Some(two * three)
 }
 
-pub fn part_two<'a>(input: &'a str) -> Option<String> {
+pub fn part_two(input: &str) -> Option<String> {
     let (_, boxes) = parser(input).unwrap();
     let closest_two = boxes
         .iter()

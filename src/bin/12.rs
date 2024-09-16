@@ -110,7 +110,7 @@ pub fn part_two(input: &str) -> Option<u64> {
     );
     let mut seen_states: HashMap<FrozenSet<i32>, (u64, i32)> = HashMap::new();
 
-    for i in 1..50_000_000_000 as u64 {
+    for i in 1..50_000_000_000_u64 {
         state = next_state(&state, &rules);
         // frozen sets are hashable and read only, which is what we want for membership checking
         // normalize our state by subtracting the minimum from everything to get a 0-centered representation
@@ -120,15 +120,16 @@ pub fn part_two(input: &str) -> Option<u64> {
             .collect::<HashSet<i32>>()
             .freeze();
 
-        if !seen_states.contains_key(&normalized_state) {
-            seen_states.insert(normalized_state, (i, state.iter().sum()));
+        if let std::collections::hash_map::Entry::Vacant(e) =
+            seen_states.entry(normalized_state.clone())
+        {
+            e.insert((i, state.iter().sum()));
         } else {
             // the previous seen_state gives the stepwise increase
             let (old_step, old_value) = seen_states.get(&normalized_state).unwrap();
             let increment = i - old_step;
             let current_value = state.iter().sum::<i32>();
             let value_increment = (current_value - old_value) as u64;
-            dbg!(&i, &current_value, &increment, &value_increment);
 
             // turns out our clues give an increment of 1, so a recurring shape that just increases by a fixed value every step
             // so skipping the logic to factor out cycles and offsets near the 50 billion threshold

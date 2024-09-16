@@ -25,7 +25,7 @@ impl Node {
     }
 
     fn sum_values(&self) -> usize {
-        if self.children.len() > 0 {
+        if self.children.is_empty() {
             let mut value = 0;
             for pointer in self.metadata.iter() {
                 // subtract 1 for 1-indexed data

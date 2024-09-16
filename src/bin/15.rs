@@ -4,7 +4,11 @@
 advent_of_code::solution!(15);
 // adapted shamelessly from https://github.com/udoprog/rust-advent-of-code-2018/blob/master/src/bin/day15.rs because i could not be bothered
 
-use std::{collections::{BTreeMap, HashMap, HashSet, VecDeque}, error::Error, fmt};
+use std::{
+    collections::{BTreeMap, HashMap, HashSet, VecDeque},
+    error::Error,
+    fmt,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Barf();
@@ -137,8 +141,7 @@ impl State {
         if let Some(other_id) = self.unit_by_position.insert(to, id) {
             panic!(
                 "there was already a unit at position {:?}: {}",
-                to,
-                other_id
+                to, other_id
             );
         }
 
@@ -146,9 +149,7 @@ impl State {
             if old_pos != from {
                 panic!(
                     "wrong position `{:?}` recorded for unit `{}`, expected: {:?}",
-                    old_pos,
-                    id,
-                    from
+                    old_pos, id, from
                 );
             }
         }

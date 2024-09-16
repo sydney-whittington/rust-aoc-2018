@@ -1,7 +1,7 @@
 advent_of_code::solution!(10);
 
+use std::collections::HashMap;
 use std::iter::repeat;
-use std::{collections::HashMap, i32};
 
 use advent_of_code::{coord_signed_parse, CoordinateSigned};
 use itertools::Itertools;
@@ -57,7 +57,7 @@ fn parser(i: &str) -> IResult<&str, Vec<Light>> {
     separated_list0(newline, one_entry)(i)
 }
 
-fn get_corners(lights: &Vec<Light>) -> Corners {
+fn get_corners(lights: &[Light]) -> Corners {
     let (min_x, max_x) = lights
         .iter()
         .map(|l| l.position.x)
@@ -77,7 +77,7 @@ fn get_corners(lights: &Vec<Light>) -> Corners {
     }
 }
 
-fn skygaze(sky: &Sky) -> () {
+fn skygaze(sky: &Sky) {
     for column in sky.corners.ys() {
         for row in sky.corners.xs() {
             print!("{}", sky.space.get(&(row, column)).unwrap());
@@ -87,19 +87,19 @@ fn skygaze(sky: &Sky) -> () {
     println!();
 }
 
-fn advance(lights: &mut Vec<Light>) -> () {
+fn advance(lights: &mut [Light]) {
     // no vector iterators for us here (https://stackoverflow.com/questions/49143770/efficiently-mutate-a-vector-while-also-iterating-over-the-same-vector)
-    for i in 0..lights.len() {
-        lights[i].position.x += lights[i].velocity.x;
-        lights[i].position.y += lights[i].velocity.y;
+    for light in lights {
+        light.position.x += light.velocity.x;
+        light.position.y += light.velocity.y;
     }
 }
 
 // for when we overshoot so we don't have to store the whole array at each step just in case
-fn retreat(lights: &mut Vec<Light>) -> () {
-    for i in 0..lights.len() {
-        lights[i].position.x -= lights[i].velocity.x;
-        lights[i].position.y -= lights[i].velocity.y;
+fn retreat(lights: &mut [Light]) {
+    for light in lights {
+        light.position.x -= light.velocity.x;
+        light.position.y -= light.velocity.y;
     }
 }
 

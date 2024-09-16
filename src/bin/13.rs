@@ -155,7 +155,7 @@ fn next_state(state: &AllCarts, map: &CartMap) -> Result<AllCarts, CartCrash> {
         .iter()
         .sorted_unstable_by_key(|&a| (a.0.top, a.0.left))
     {
-        let new_coord = new_location(coord, &cart);
+        let new_coord = new_location(coord, cart);
         let new_cart = new_facing(&new_coord, cart, map);
 
         // hit where it was previously
@@ -164,7 +164,7 @@ fn next_state(state: &AllCarts, map: &CartMap) -> Result<AllCarts, CartCrash> {
         }
 
         // hit something that's there this tick
-        if let Some(_) = next_state.insert(new_coord, new_cart) {
+        if next_state.insert(new_coord, new_cart).is_some() {
             return Err(CartCrash(new_coord));
         }
     }
@@ -188,7 +188,7 @@ fn next_state_removal(state: &AllCarts, map: &CartMap) -> AllCarts {
             continue;
         }
 
-        let new_coord = new_location(coord, &cart);
+        let new_coord = new_location(coord, cart);
         let new_cart = new_facing(&new_coord, cart, map);
 
         if state.contains_key(&new_coord) {
@@ -201,7 +201,7 @@ fn next_state_removal(state: &AllCarts, map: &CartMap) -> AllCarts {
             }
         }
 
-        if let Some(_) = next_state.insert(new_coord, new_cart) {
+        if next_state.insert(new_coord, new_cart).is_some() {
             next_state.remove(&new_coord);
         }
     }

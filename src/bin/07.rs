@@ -53,15 +53,12 @@ fn make_graph(steps: Vec<Step>) -> HashMap<char, HashSet<char>> {
 }
 
 fn check_next_step(graph: &HashMap<char, HashSet<char>>) -> Option<char> {
-    let available_steps = graph.iter().filter(|(_, prereqs)| prereqs.len() == 0);
+    let available_steps = graph.iter().filter(|(_, prereqs)| prereqs.is_empty());
     let next_step = available_steps
         .sorted_by(|(step1, _), (step2, _)| step1.cmp(step2))
         .next();
 
-    match next_step {
-        Some((c, _)) => Some(*c),
-        None => None,
-    }
+    next_step.map(|(c, _)| *c)
 }
 
 pub fn part_one(input: &str) -> Option<String> {
