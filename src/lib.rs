@@ -33,7 +33,7 @@ pub struct Coordinate<T> {
 pub fn coord_parse(i: &str) -> IResult<&str, Coordinate<u32>> {
     let (i, (left, top)) = separated_pair(
         preceded(multispace0, number),
-        tag(", "),
+        tag(","),
         preceded(multispace0, number),
     )(i)?;
     Ok((i, Coordinate { left, top }))

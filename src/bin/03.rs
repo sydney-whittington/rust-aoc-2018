@@ -83,7 +83,7 @@ pub fn part_two(input: &str) -> Option<u32> {
     }
 
     // get the only thing left in clean_ids
-    Some(clean_ids.drain().collect::<Vec<u32>>()[0])
+    Some(clean_ids.into_iter().next().unwrap())
 }
 
 #[cfg(test)]
