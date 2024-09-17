@@ -1,11 +1,12 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use advent_of_code::Coordinate;
+use frozenset::{Freeze, FrozenSet};
 use itertools::Itertools;
 
 advent_of_code::solution!(18);
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 enum Acre {
     Open,
     Trees,
@@ -76,25 +77,54 @@ fn next_state(location: Location, map: &AreaMap) -> Acre {
     }
 }
 
+fn next_minute(map: &AreaMap) -> AreaMap {
+    let mut next_map = AreaMap::new();
+    for location in map.iter() {
+        next_map.insert(*location.0, next_state(location, &map));
+    }
+    next_map
+}
+
 pub fn part_one(input: &str) -> Option<usize> {
     let mut map: AreaMap = parser(input);
 
-    let mut next_map = AreaMap::new();
     for _ in 0..10 {
-        for location in map.iter() {
-            next_map.insert(*location.0, next_state(location, &map));
-        }
-
-        map = next_map;
-        next_map = AreaMap::new();
+        map = next_minute(&map);
     }
 
     let counts = map.iter().map(|c| c.1).counts();
     Some(counts.get(&Acre::Trees).unwrap()*counts.get(&Acre::Lumberyard).unwrap())
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let mut map: AreaMap = parser(input);
+    let mut seen_states: HashMap<FrozenSet<(Coordinate<usize>, Acre)>, i32> = HashMap::new();
+
+    //https://stackoverflow.com/questions/70789954/how-to-skip-forward-multiple-times-in-a-loop
+    let mut timer = 0..1_000_000_000;
+    while let Some(i) = timer.next() {
+        map = next_minute(&map);
+
+        let thing: FrozenSet<(Coordinate<usize>, Acre)> = HashSet::from_iter(map.iter().map(|(a, b)| (a.clone(), *b))).freeze();
+        if let std::collections::hash_map::Entry::Vacant(e) = seen_states.entry(thing.clone())
+        {
+            e.insert(i);
+        }
+        else {
+            // only do one big skip and manually run from there
+            if i < 9000000 {
+                let cycle_length = i - seen_states.get(&thing).unwrap();
+                let remaining_steps = 1_000_000_000 - i;
+                // integer division to get us close
+                let safe_to_skip = remaining_steps / cycle_length;
+                // subtract 1 to allow for the next timer.next call to line up
+                timer.nth((safe_to_skip * cycle_length - 1).try_into().unwrap());
+            }
+        }
+    }
+
+    let counts = map.iter().map(|c| c.1).counts();
+    Some(counts.get(&Acre::Trees).unwrap()*counts.get(&Acre::Lumberyard).unwrap())
 }
 
 #[cfg(test)]
