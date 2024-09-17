@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{collections::HashMap, fs::File, iter::once, io::Write};
+use std::{collections::HashMap, fs::File, io::Write, iter::once};
 
 use advent_of_code::{number, Coordinate};
 use itertools::Itertools;
@@ -23,6 +23,23 @@ struct Reservoir {
     left_edge: u32,
     right_edge: u32,
     bottom_edge: u32,
+    top_edge: u32,
+}
+
+impl Reservoir {
+    fn below(&self, location: &Coordinate<u32>) -> Ground {
+        *self
+            .contents
+            .get(&Coordinate {
+                left: location.left,
+                top: location.top + 1,
+            })
+            .unwrap_or(&Ground::Sand)
+    }
+
+    fn at(&self, location: &Coordinate<u32>) -> Ground {
+        *self.contents.get(location).unwrap_or(&Ground::Sand)
+    }
 }
 
 #[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)]
@@ -43,15 +60,11 @@ enum Filled {
 impl fmt::Display for Reservoir {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for row in 0..=self.bottom_edge {
-            for col in self.left_edge..=self.right_edge {
-                let character = match self
-                    .contents
-                    .get(&Coordinate {
-                        left: col,
-                        top: row,
-                    })
-                    .unwrap_or(&Ground::Sand)
-                {
+            for col in self.left_edge - 1..=self.right_edge {
+                let character = match self.at(&Coordinate {
+                    left: col,
+                    top: row,
+                }) {
                     Ground::Sand => ".",
                     Ground::Clay => "#",
                     Ground::Spring => "+",
@@ -106,10 +119,10 @@ fn check_stable(
 ) -> bool {
     let coords = ((left_edge.left + 1)..right_edge.left).map(|x| Coordinate {
         left: x,
-        top: left_edge.top + 1,
+        top: left_edge.top,
     });
     coords
-        .map(|c| reservoir.contents.get(&c).unwrap_or(&Ground::Sand))
+        .map(|c| reservoir.below(&c))
         .all(|g| g.eq(&Ground::Clay) || g.eq(&Ground::Flooded))
 }
 
@@ -166,53 +179,52 @@ fn overflow_row(
     reservoir: &mut Reservoir,
 ) -> (Option<Coordinate<u32>>, Option<Coordinate<u32>>) {
     // look left and right for where/if it should fall off
-
-    let left_side: Vec<_> = (reservoir.left_edge..active.left)
+    let left_side = (reservoir.left_edge..=active.left - 1)
         .rev()
         .map(|y| Coordinate {
             left: y,
             top: active.top,
         })
-        .take_while(|c| !reservoir.contents.contains_key(c))
-        .take_while_inclusive(|c| {
-            reservoir
-                .contents
-                .get(&Coordinate {
-                    left: c.left,
-                    top: active.top + 1,
-                })
-                .is_some_and(|g| g.eq(&Ground::Flooded) || g.eq(&Ground::Clay))
+        .take_while(|c| {
+            reservoir.at(c).eq(&Ground::Sand)
+                || (reservoir.at(c).eq(&Ground::Wet) && reservoir.below(c).eq(&Ground::Flooded))
         })
-        .collect();
-    let right_side: Vec<_> = (active.left + 1..reservoir.right_edge)
+        .take_while_inclusive(|c| matches!(reservoir.below(c), Ground::Flooded | Ground::Clay))
+        .collect_vec();
+    let right_side = (active.left + 1..=reservoir.right_edge)
         .map(|y| Coordinate {
             left: y,
             top: active.top,
         })
-        .take_while(|c| !reservoir.contents.contains_key(c))
-        .take_while_inclusive(|c| {
-            reservoir
-                .contents
-                .get(&Coordinate {
-                    left: c.left,
-                    top: active.top + 1,
-                })
-                .is_some_and(|g| g.eq(&Ground::Flooded) || g.eq(&Ground::Clay))
+        .take_while(|c| {
+            reservoir.at(c).eq(&Ground::Sand)
+                || (reservoir.at(c).eq(&Ground::Wet) && reservoir.below(c).eq(&Ground::Flooded))
         })
-        .collect();
+        .take_while_inclusive(|c| matches!(reservoir.below(c), Ground::Flooded | Ground::Clay))
+        .collect_vec();
 
-    for coord in left_side.iter().chain(right_side.iter()) {
-        reservoir.contents.insert(*coord, Ground::Wet);
+    let mut anything_changed = false;
+    for coord in once(active).chain(left_side.iter().chain(right_side.iter())) {
+        if reservoir.contents.insert(*coord, Ground::Wet).is_none() {
+            anything_changed = true;
+        }
     }
 
-    // the last of each is the outermost one, which may have new flows to descend
-    (left_side.last().cloned(), right_side.last().cloned())
+    if anything_changed {
+        // the last of each is the outermost one, which may have new flows to descend
+        (left_side.last().cloned(), right_side.last().cloned())
+    } else {
+        // otherwise we're looking at something we've already done and don't need to go further
+        (None, None)
+    }
 }
 
 fn fill(mut active: Coordinate<u32>, reservoir: &mut Reservoir) {
     // draw a line down until you can't
     active.top += 1;
-    while !reservoir.contents.contains_key(&active) && active.top <= reservoir.bottom_edge {
+    while matches!(reservoir.at(&active), Ground::Sand | Ground::Wet)
+        && active.top <= reservoir.bottom_edge
+    {
         reservoir.contents.insert(active, Ground::Wet);
         if active.top == reservoir.bottom_edge {
             return;
@@ -225,7 +237,6 @@ fn fill(mut active: Coordinate<u32>, reservoir: &mut Reservoir) {
 
     // fill left and right and repeat, moving up a row at a time
     loop {
-        // print_reservoir(reservoir);
         let state = fill_row(&active, reservoir);
         if matches!(state, Filled::Filling) {
             active.top -= 1;
@@ -234,6 +245,7 @@ fn fill(mut active: Coordinate<u32>, reservoir: &mut Reservoir) {
             break;
         }
     }
+
     // fill the top of the container with wet
     let (left_side, right_side) = overflow_row(&active, reservoir);
 
@@ -249,21 +261,31 @@ fn fill(mut active: Coordinate<u32>, reservoir: &mut Reservoir) {
 fn make_reservoir(veins: Vec<Vein>) -> Reservoir {
     let mut contents: ReservoirContents =
         HashMap::from_iter(veins.into_iter().flatten().zip(once(Ground::Clay).cycle()));
-    contents.insert(Coordinate { left: 500, top: 0 }, Ground::Spring);
-    contents.insert(Coordinate { left: 500, top: 1 }, Ground::Wet);
 
-    let (min_y, max_y) = contents
+    // calculate scoring bounds before we add our start point
+    let (min_x, max_x) = contents
         .keys()
         .map(|c| c.left)
         .minmax()
         .into_option()
         .unwrap();
-    let max_x = contents.keys().map(|c| c.top).max().unwrap();
+    let (min_y, max_y) = contents
+        .keys()
+        .map(|c| c.top)
+        .minmax()
+        .into_option()
+        .unwrap();
+
+    contents.insert(Coordinate { left: 500, top: 0 }, Ground::Spring);
+    contents.insert(Coordinate { left: 500, top: 1 }, Ground::Wet);
+
     Reservoir {
         contents,
-        left_edge: min_y,
-        bottom_edge: max_x,
-        right_edge: max_y,
+        bottom_edge: max_y,
+        top_edge: min_y,
+        // side edges need to be expanded one column to allow for overflow
+        left_edge: min_x - 1,
+        right_edge: max_x + 1,
     }
 }
 
@@ -280,8 +302,11 @@ pub fn part_one(input: &str) -> Option<usize> {
     Some(
         reservoir
             .contents
-            .values()
-            .filter(|&&g| g.eq(&Ground::Flooded) || g.eq(&Ground::Wet))
+            .into_iter()
+            // within the grid, since we're modeling water above their bounds
+            .filter(|(c, _)| c.top >= reservoir.top_edge)
+            .map(|(_, g)| g)
+            .filter(|&g| g.eq(&Ground::Flooded) || g.eq(&Ground::Wet))
             .count(),
     )
 }

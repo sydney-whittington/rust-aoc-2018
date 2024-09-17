@@ -2,6 +2,7 @@ pub mod template;
 
 // Use this file to add helper functions and additional modules.
 
+use std::io::{stdin, stdout, Read, Write};
 use std::{
     fmt::{self},
     str::FromStr,
@@ -69,4 +70,11 @@ impl fmt::Display for Output<u32> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "({}, {})", self.0, self.1)
     }
+}
+
+pub fn pause() {
+    let mut stdout = stdout();
+    stdout.write_all(b"Press Enter to continue...").unwrap();
+    stdout.flush().unwrap();
+    stdin().read_exact(&mut [0]).unwrap();
 }
