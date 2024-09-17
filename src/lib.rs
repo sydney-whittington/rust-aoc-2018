@@ -31,6 +31,45 @@ pub struct Coordinate<T> {
     pub top: T,
 }
 
+impl Coordinate<usize> {
+    pub fn adjacents(&self) -> Vec<Coordinate<usize>> {
+        Vec::from([
+            Coordinate {
+                left: self.left - 1,
+                top: self.top - 1,
+            },
+            Coordinate {
+                left: self.left,
+                top: self.top - 1,
+            },
+            Coordinate {
+                left: self.left + 1,
+                top: self.top - 1,
+            },
+            Coordinate {
+                left: self.left - 1,
+                top: self.top,
+            },
+            Coordinate {
+                left: self.left + 1,
+                top: self.top,
+            },
+            Coordinate {
+                left: self.left - 1,
+                top: self.top + 1,
+            },
+            Coordinate {
+                left: self.left,
+                top: self.top + 1,
+            },
+            Coordinate {
+                left: self.left + 1,
+                top: self.top + 1,
+            },
+        ])
+    }
+}
+
 pub fn coord_parse(i: &str) -> IResult<&str, Coordinate<u32>> {
     let (i, (left, top)) = separated_pair(
         preceded(multispace0, number),
