@@ -127,30 +127,23 @@ fn check_stable(
 }
 
 fn fill_row(active: &Coordinate<u32>, reservoir: &mut Reservoir) -> Filled {
-    let left_side = (reservoir.left_edge..active.left)
-        .rev()
-        .map(|y| {
-            reservoir.contents.get_key_value(&Coordinate {
-                top: active.top,
-                left: y,
+    macro_rules! pairs_to_next_clay {
+        ($x:expr) => {
+            $x.map(|y| {
+                reservoir.contents.get_key_value(&Coordinate {
+                    top: active.top,
+                    left: y,
+                })
             })
-        })
-        .find_map(|c| match c {
-            Some(c) if *c.1 == Ground::Clay => Some(c),
-            _ => None,
-        });
+            .find_map(|c| match c {
+                Some(c) if *c.1 == Ground::Clay => Some(c),
+                _ => None,
+            })
+        };
+    }
 
-    let right_side = (active.left..=reservoir.right_edge)
-        .map(|y| {
-            reservoir.contents.get_key_value(&Coordinate {
-                top: active.top,
-                left: y,
-            })
-        })
-        .find_map(|c| match c {
-            Some(c) if *c.1 == Ground::Clay => Some(c),
-            _ => None,
-        });
+    let left_side = pairs_to_next_clay!((reservoir.left_edge..active.left).rev());
+    let right_side = pairs_to_next_clay!((active.left..=reservoir.right_edge));
 
     match left_side.zip(right_side) {
         // if the path between both edges is stable, fill
@@ -178,30 +171,26 @@ fn overflow_row(
     active: &Coordinate<u32>,
     reservoir: &mut Reservoir,
 ) -> (Option<Coordinate<u32>>, Option<Coordinate<u32>>) {
+    macro_rules! overflow_row {
+        ($x:expr) => {
+            // turn range to coordinates
+            $x.map(|y| Coordinate {
+                left: y,
+                top: active.top,
+            })
+            // find valid tiles in that direction
+            .take_while(|c| {
+                reservoir.at(c).eq(&Ground::Sand)
+                    || (reservoir.at(c).eq(&Ground::Wet) && reservoir.below(c).eq(&Ground::Flooded))
+            })
+            // and take up to one past the end to waterfall over
+            .take_while_inclusive(|c| matches!(reservoir.below(c), Ground::Flooded | Ground::Clay))
+            .collect_vec()
+        };
+    }
     // look left and right for where/if it should fall off
-    let left_side = (reservoir.left_edge..=active.left - 1)
-        .rev()
-        .map(|y| Coordinate {
-            left: y,
-            top: active.top,
-        })
-        .take_while(|c| {
-            reservoir.at(c).eq(&Ground::Sand)
-                || (reservoir.at(c).eq(&Ground::Wet) && reservoir.below(c).eq(&Ground::Flooded))
-        })
-        .take_while_inclusive(|c| matches!(reservoir.below(c), Ground::Flooded | Ground::Clay))
-        .collect_vec();
-    let right_side = (active.left + 1..=reservoir.right_edge)
-        .map(|y| Coordinate {
-            left: y,
-            top: active.top,
-        })
-        .take_while(|c| {
-            reservoir.at(c).eq(&Ground::Sand)
-                || (reservoir.at(c).eq(&Ground::Wet) && reservoir.below(c).eq(&Ground::Flooded))
-        })
-        .take_while_inclusive(|c| matches!(reservoir.below(c), Ground::Flooded | Ground::Clay))
-        .collect_vec();
+    let left_side = overflow_row!((reservoir.left_edge..=active.left - 1).rev());
+    let right_side = overflow_row!((active.left + 1..=reservoir.right_edge));
 
     let mut anything_changed = false;
     for coord in once(active).chain(left_side.iter().chain(right_side.iter())) {
