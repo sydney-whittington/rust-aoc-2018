@@ -311,8 +311,26 @@ pub fn part_one(input: &str) -> Option<usize> {
     )
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let (_, veins) = parser(input).unwrap();
+    let mut reservoir = make_reservoir(veins);
+
+    let start = Coordinate { left: 500, top: 1 };
+    fill(start, &mut reservoir);
+
+    let mut w = File::create("test.txt").unwrap();
+    write!(&mut w, "{}", reservoir).unwrap();
+
+    Some(
+        reservoir
+            .contents
+            .into_iter()
+            .filter(|(c, _)| c.top >= reservoir.top_edge)
+            .map(|(_, g)| g)
+            // all that changes is we're only looking for flooded tiles
+            .filter(|&g| g.eq(&Ground::Flooded))
+            .count(),
+    )
 }
 
 #[cfg(test)]
@@ -328,6 +346,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(29));
     }
 }
