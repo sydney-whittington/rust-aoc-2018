@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
-use advent_of_code::number_usize;
-use enum_iterator::{all, cardinality, Sequence};
+use advent_of_code::{instructions, number_usize, Instruction, Opcode};
+use enum_iterator::{all, cardinality};
 use nom::{
     bytes::complete::tag,
     character::complete::newline,
@@ -13,14 +13,6 @@ use nom::{
 advent_of_code::solution!(16);
 
 type Registers = [usize; 4];
-
-#[derive(Debug)]
-struct Instruction {
-    opcode: Opcode,
-    input1: usize,
-    input2: usize,
-    output: usize,
-}
 
 #[derive(Debug)]
 struct UnknownInstruction {
@@ -35,27 +27,6 @@ struct Capture {
     before: Registers,
     instruction: UnknownInstruction,
     after: Registers,
-}
-
-#[allow(non_camel_case_types)]
-#[derive(Hash, PartialEq, Eq, Sequence, Clone, Copy, Debug)]
-enum Opcode {
-    addr,
-    addi,
-    mulr,
-    muli,
-    banr,
-    bani,
-    borr,
-    bori,
-    setr,
-    seti,
-    grit,
-    gtri,
-    gtrr,
-    eqir,
-    eqri,
-    eqrr,
 }
 
 fn parse_instruction(i: &str) -> IResult<&str, UnknownInstruction> {
@@ -114,68 +85,7 @@ fn parser_part_two(i: &str) -> IResult<&str, Vec<UnknownInstruction>> {
     many0(parse_instruction)(i)
 }
 
-fn execute_instruction(registers: Registers, instruction: Instruction) -> Registers {
-    let mut registers = registers;
-
-    match instruction.opcode {
-        Opcode::addr => {
-            registers[instruction.output] =
-                registers[instruction.input1] + registers[instruction.input2]
-        }
-        Opcode::addi => {
-            registers[instruction.output] = registers[instruction.input1] + instruction.input2
-        }
-        Opcode::mulr => {
-            registers[instruction.output] =
-                registers[instruction.input1] * registers[instruction.input2]
-        }
-        Opcode::muli => {
-            registers[instruction.output] = registers[instruction.input1] * instruction.input2
-        }
-        Opcode::banr => {
-            registers[instruction.output] =
-                registers[instruction.input1] & registers[instruction.input2]
-        }
-        Opcode::bani => {
-            registers[instruction.output] = registers[instruction.input1] & instruction.input2
-        }
-        Opcode::borr => {
-            registers[instruction.output] =
-                registers[instruction.input1] | registers[instruction.input2]
-        }
-        Opcode::bori => {
-            registers[instruction.output] = registers[instruction.input1] | instruction.input2
-        }
-        Opcode::setr => registers[instruction.output] = registers[instruction.input1],
-        Opcode::seti => registers[instruction.output] = instruction.input1,
-        Opcode::grit => {
-            registers[instruction.output] =
-                (instruction.input1 > registers[instruction.input2]) as usize
-        }
-        Opcode::gtri => {
-            registers[instruction.output] =
-                (registers[instruction.input1] > instruction.input2) as usize
-        }
-        Opcode::gtrr => {
-            registers[instruction.output] =
-                (registers[instruction.input1] > registers[instruction.input2]) as usize
-        }
-        Opcode::eqir => {
-            registers[instruction.output] =
-                (instruction.input1 == registers[instruction.input2]) as usize
-        }
-        Opcode::eqri => {
-            registers[instruction.output] =
-                (registers[instruction.input1] == instruction.input2) as usize
-        }
-        Opcode::eqrr => {
-            registers[instruction.output] =
-                (registers[instruction.input1] == registers[instruction.input2]) as usize
-        }
-    }
-
-    registers
-}
+instructions!(Registers);
 
 fn possibilities(capture: &Capture) -> HashSet<Opcode> {
     let mut possibilities = HashSet::new();

@@ -8,6 +8,7 @@ use std::{
     str::FromStr,
 };
 
+use enum_iterator::Sequence;
 use nom::{
     bytes::complete::tag,
     character::complete::{digit1, i32, multispace0},
@@ -116,4 +117,132 @@ pub fn pause() {
     stdout.write_all(b"Press Enter to continue...").unwrap();
     stdout.flush().unwrap();
     stdin().read_exact(&mut [0]).unwrap();
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Instruction {
+    pub opcode: Opcode,
+    pub input1: usize,
+    pub input2: usize,
+    pub output: usize,
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Hash, PartialEq, Eq, Sequence, Clone, Copy, Debug)]
+pub enum Opcode {
+    addr,
+    addi,
+    mulr,
+    muli,
+    banr,
+    bani,
+    borr,
+    bori,
+    setr,
+    seti,
+    grit,
+    gtri,
+    gtrr,
+    eqir,
+    eqri,
+    eqrr,
+}
+
+impl FromStr for Opcode {
+    type Err = ();
+
+    fn from_str(input: &str) -> Result<Opcode, Self::Err> {
+        match input {
+            "addr" => Ok(Opcode::addr),
+            "addi" => Ok(Opcode::addi),
+            "mulr" => Ok(Opcode::mulr),
+            "muli" => Ok(Opcode::muli),
+            "banr" => Ok(Opcode::banr),
+            "bani" => Ok(Opcode::bani),
+            "borr" => Ok(Opcode::borr),
+            "bori" => Ok(Opcode::bori),
+            "setr" => Ok(Opcode::setr),
+            "seti" => Ok(Opcode::seti),
+            "grit" => Ok(Opcode::grit),
+            "gtri" => Ok(Opcode::gtri),
+            "gtrr" => Ok(Opcode::gtrr),
+            "eqir" => Ok(Opcode::eqir),
+            "eqri" => Ok(Opcode::eqri),
+            "eqrr" => Ok(Opcode::eqrr),
+            _ => Err(()),
+        }
+    }
+}
+
+#[macro_export]
+// implements execute_instruction for the given register type
+macro_rules! instructions {
+    ($x:ty) => {
+        fn execute_instruction(registers: $x, instruction: Instruction) -> Registers {
+            let mut registers = registers;
+
+            match instruction.opcode {
+                Opcode::addr => {
+                    registers[instruction.output] =
+                        registers[instruction.input1] + registers[instruction.input2]
+                }
+                Opcode::addi => {
+                    registers[instruction.output] =
+                        registers[instruction.input1] + instruction.input2
+                }
+                Opcode::mulr => {
+                    registers[instruction.output] =
+                        registers[instruction.input1] * registers[instruction.input2]
+                }
+                Opcode::muli => {
+                    registers[instruction.output] =
+                        registers[instruction.input1] * instruction.input2
+                }
+                Opcode::banr => {
+                    registers[instruction.output] =
+                        registers[instruction.input1] & registers[instruction.input2]
+                }
+                Opcode::bani => {
+                    registers[instruction.output] =
+                        registers[instruction.input1] & instruction.input2
+                }
+                Opcode::borr => {
+                    registers[instruction.output] =
+                        registers[instruction.input1] | registers[instruction.input2]
+                }
+                Opcode::bori => {
+                    registers[instruction.output] =
+                        registers[instruction.input1] | instruction.input2
+                }
+                Opcode::setr => registers[instruction.output] = registers[instruction.input1],
+                Opcode::seti => registers[instruction.output] = instruction.input1,
+                Opcode::grit => {
+                    registers[instruction.output] =
+                        (instruction.input1 > registers[instruction.input2]) as usize
+                }
+                Opcode::gtri => {
+                    registers[instruction.output] =
+                        (registers[instruction.input1] > instruction.input2) as usize
+                }
+                Opcode::gtrr => {
+                    registers[instruction.output] =
+                        (registers[instruction.input1] > registers[instruction.input2]) as usize
+                }
+                Opcode::eqir => {
+                    registers[instruction.output] =
+                        (instruction.input1 == registers[instruction.input2]) as usize
+                }
+                Opcode::eqri => {
+                    registers[instruction.output] =
+                        (registers[instruction.input1] == instruction.input2) as usize
+                }
+                Opcode::eqrr => {
+                    registers[instruction.output] =
+                        (registers[instruction.input1] == registers[instruction.input2]) as usize
+                }
+            }
+
+            registers
+        }
+    };
 }
