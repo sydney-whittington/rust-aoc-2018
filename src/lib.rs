@@ -127,6 +127,16 @@ pub struct Instruction {
     pub output: usize,
 }
 
+impl fmt::Display for Instruction {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{:?} {} {} {}",
+            self.opcode, self.input1, self.input2, self.output
+        )
+    }
+}
+
 #[allow(non_camel_case_types)]
 #[derive(Hash, PartialEq, Eq, Sequence, Clone, Copy, Debug)]
 pub enum Opcode {
