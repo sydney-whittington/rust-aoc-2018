@@ -98,8 +98,15 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(longest_shortest_path)
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let steps = parser(input);
+    let graph = make_graph(steps);
+
+    // 0-indexed value is always our start
+    let shortest_paths = k_shortest_path(&graph, 0.into(), None, 1, |_| 1);
+    let long_paths = shortest_paths.values().filter(|l| **l >= 1000).count();
+
+    Some(long_paths)
 }
 
 #[cfg(test)]
