@@ -132,7 +132,7 @@ pub fn part_two(input: &str) -> Option<usize> {
     println!("{}", &final_state);
     // sum of factors
     let n = final_state.registers[5];
-    Some((1..(n+1)).filter(|x| n % x == 0).sum())
+    Some((1..(n + 1)).filter(|x| n % x == 0).sum())
 }
 
 #[cfg(test)]
