@@ -1,9 +1,9 @@
 advent_of_code::solution!(21);
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use advent_of_code::{
-    instructions, parse_program, pause, Instruction, MachineState, Opcode, OperationResult,
+    instructions, parse_program, Instruction, MachineState, Opcode, OperationResult,
     Registers,
 };
 
@@ -13,14 +13,8 @@ fn advance_program(state: MachineState) -> OperationResult {
     let mut registers = state.registers;
 
     if let Some(instruction) = state.instructions.get(&(registers[state.pointer])) {
-        if registers[state.pointer] == 28 {
-            print!("{}{}", &state, &instruction);
-            registers = execute_instruction(registers, *instruction);
-            println!(" {:?}", &registers);
-        }
-        else {
-            registers = execute_instruction(registers, *instruction);
-        }
+        registers = execute_instruction(registers, *instruction);
+
         // advance the instruction pointer
         registers[state.pointer] += 1;
 
@@ -52,23 +46,31 @@ pub fn part_one(input: &str) -> Option<usize> {
     }
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
-    None
-}
+pub fn part_two(input: &str) -> Option<usize> {
+    let (_, (pointer, instructions)) = parse_program(input).unwrap();
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+    let mut state = MachineState {
+        registers: [0, 0, 0, 0, 0, 0],
+        pointer,
+        instructions: HashMap::from_iter((0..).zip(instructions)),
+    };
 
-    #[test]
-    fn test_part_one() {
-        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
-    }
+    let mut seen_values = HashSet::new();
+    let mut last_value = 0;
 
-    #[test]
-    fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+    loop {
+        match advance_program(state) {
+            OperationResult::Active(s) => state = s,
+            OperationResult::Concluded(_) => panic!("somehow halted without being set to")
+        }
+        if state.registers[state.pointer] == 28 {
+            if !seen_values.insert(state.registers[5]) {
+                return Some(last_value);
+            }
+            if seen_values.len() % 1000 == 0 {
+                println!("seen {} unique values", seen_values.len())
+            }
+            last_value = state.registers[5];
+        }
     }
 }
