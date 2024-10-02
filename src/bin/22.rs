@@ -24,9 +24,30 @@ fn parser(i: &str) -> IResult<&str, Cave> {
     Ok((i, Cave { depth, target }))
 }
 
+fn print_cavern(cave: &Cave, cavern: &HashMap<(usize, usize), usize>) {
+    for row in 0..=cave.target.top {
+        for col in 0..=cave.target.left {
+            let x = cavern.get(&(col, row)).unwrap();
+            let character = if row == cave.target.top && col == cave.target.left {
+                "T"
+            } else if x % 3 == 0 {
+                "."
+            } else if x % 3 == 1 {
+                "="
+            } else if x % 3 == 2 {
+                "|"
+            } else {
+                unreachable!()
+            };
+            print!("{}", character);
+        }
+        println!();
+    }
+    println!();
+}
+
 pub fn part_one(input: &str) -> Option<usize> {
     let (_, cave) = parser(input).unwrap();
-    dbg!(&cave);
 
     let mut cavern: HashMap<(usize, usize), usize> = HashMap::new();
     // sorted by minimum sum which will give numbers closer to the top left corner first
@@ -34,7 +55,6 @@ pub fn part_one(input: &str) -> Option<usize> {
         .cartesian_product(0..=cave.target.top)
         .sorted_by_key(|(x, y)| x + y)
     {
-        dbg!(&x, &y, &cavern);
         let geologic_index = match (x, y) {
             (0, 0) => 0,
             (x, y) if x == cave.target.left && y == cave.target.top => 0,
@@ -42,13 +62,16 @@ pub fn part_one(input: &str) -> Option<usize> {
             (0, y) => y * 48271,
             (x, y) => cavern.get(&(x - 1, y)).unwrap() * cavern.get(&(x, y - 1)).unwrap(),
         };
-        cavern.insert((x, y), geologic_index);
+        // move the modulo part up since otherwise we'll quickly overflow
+        // since we're modding everything before using it, it's equivalent
+        // (i tried bigints too and it was not fast enough lol)
+        cavern.insert((x, y), (geologic_index + cave.depth) % 20183);
     }
 
     Some(
-        (1..=cave.target.left)
-            .cartesian_product(1..=cave.target.top)
-            .map(|(x, y)| ((cavern.get(&(x, y)).unwrap() + cave.depth) % 20183) % 3)
+        (0..=cave.target.left)
+            .cartesian_product(0..=cave.target.top)
+            .map(|(x, y)| cavern.get(&(x, y)).unwrap() % 3)
             .sum(),
     )
 }
