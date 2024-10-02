@@ -78,8 +78,7 @@ fn make_graph(steps: Vec<Step>) -> Graph<CoordinateSigned, u32, Undirected> {
             }
             Step::Or => {
                 // restart the stack from the current reference frame
-                location = stack_frame.pop().unwrap();
-                stack_frame.push(location);
+                location = *stack_frame.last().unwrap();
             }
         }
     }
@@ -102,7 +101,6 @@ pub fn part_two(input: &str) -> Option<usize> {
     let steps = parser(input);
     let graph = make_graph(steps);
 
-    // 0-indexed value is always our start
     let shortest_paths = k_shortest_path(&graph, 0.into(), None, 1, |_| 1);
     let long_paths = shortest_paths.values().filter(|l| **l >= 1000).count();
 
