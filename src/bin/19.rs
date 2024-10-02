@@ -1,69 +1,12 @@
-use std::{collections::HashMap, fmt, str::FromStr};
+use std::collections::HashMap;
 
-use advent_of_code::{instructions, number_usize, Instruction, Opcode};
-use itertools::Itertools;
-use nom::{
-    bytes::complete::tag,
-    character::complete::{alpha1, newline, space1},
-    combinator::map_res,
-    multi::{many0, separated_list0},
-    sequence::{preceded, terminated},
-    IResult,
+use advent_of_code::{
+    instructions, parse_program, Instruction, MachineState, Opcode, OperationResult, Registers,
 };
 
 advent_of_code::solution!(19);
 
-type InstructionPointer = usize;
-type Registers = [usize; 6];
-
-#[derive(Debug)]
-struct MachineState {
-    registers: Registers,
-    pointer: InstructionPointer,
-    instructions: HashMap<usize, Instruction>,
-}
-
-impl fmt::Display for MachineState {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "ip={} ", self.registers[self.pointer])?;
-        write!(
-            f,
-            "[{}] ",
-            self.registers.iter().map(|i| i.to_string()).join(", ")
-        )
-    }
-}
-enum OperationResult {
-    Active(MachineState),
-    Concluded(MachineState),
-}
-
 instructions!(Registers);
-
-fn parse_instruction(i: &str) -> IResult<&str, Instruction> {
-    let (i, opcode) = terminated(map_res(alpha1, Opcode::from_str), space1)(i)?;
-    let (i, instruction) = terminated(separated_list0(tag(" "), number_usize), newline)(i)?;
-    if instruction.len() != 3 {
-        dbg!(&i);
-    }
-
-    Ok((
-        i,
-        Instruction {
-            opcode,
-            input1: instruction[0],
-            input2: instruction[1],
-            output: instruction[2],
-        },
-    ))
-}
-
-fn parser(i: &str) -> IResult<&str, (InstructionPointer, Vec<Instruction>)> {
-    let (i, instruction_pointer) = terminated(preceded(tag("#ip "), number_usize), newline)(i)?;
-    let (i, instructions) = many0(parse_instruction)(i)?;
-
-    Ok((i, (instruction_pointer, instructions)))
-}
 
 fn advance_program(state: MachineState) -> OperationResult {
     let mut registers = state.registers;
@@ -95,7 +38,7 @@ fn advance_program(state: MachineState) -> OperationResult {
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
-    let (_, (pointer, instructions)) = parser(input).unwrap();
+    let (_, (pointer, instructions)) = parse_program(input).unwrap();
 
     let mut state = MachineState {
         registers: [0, 0, 0, 0, 0, 0],
@@ -112,7 +55,7 @@ pub fn part_one(input: &str) -> Option<usize> {
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    let (_, (pointer, instructions)) = parser(input).unwrap();
+    let (_, (pointer, instructions)) = parse_program(input).unwrap();
 
     let mut state = MachineState {
         registers: [1, 0, 0, 0, 0, 0],

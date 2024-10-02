@@ -13,7 +13,7 @@
                     "test",
                     "--no-run",
                     // replace `01` here with the solution you like to debug.
-                    "--bin=17",
+                    "--bin=21",
                     "--package=advent_of_code"
                 ],
             },
@@ -28,7 +28,7 @@
                 "args": [
                     "build",
                     // replace `01` here with the solution you like to debug.
-                    "--bin=17",
+                    "--bin=21",
                     "--package=advent_of_code"
                 ],
             },

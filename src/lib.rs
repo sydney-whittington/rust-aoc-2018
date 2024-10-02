@@ -2,6 +2,7 @@ pub mod template;
 
 // Use this file to add helper functions and additional modules.
 
+use std::collections::HashMap;
 use std::io::{stdin, stdout, Read, Write};
 use std::{
     fmt::{self},
@@ -9,6 +10,10 @@ use std::{
 };
 
 use enum_iterator::Sequence;
+use itertools::Itertools;
+use nom::character::complete::{alpha1, newline, space1};
+use nom::multi::{many0, separated_list0};
+use nom::sequence::terminated;
 use nom::{
     bytes::complete::tag,
     character::complete::{digit1, i32, multispace0},
@@ -255,4 +260,54 @@ macro_rules! instructions {
             registers
         }
     };
+}
+
+#[derive(Debug)]
+pub struct MachineState {
+    pub registers: Registers,
+    pub pointer: InstructionPointer,
+    pub instructions: HashMap<usize, Instruction>,
+}
+
+impl fmt::Display for MachineState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "ip={} ", self.registers[self.pointer])?;
+        write!(
+            f,
+            "[{}] ",
+            self.registers.iter().map(|i| i.to_string()).join(", ")
+        )
+    }
+}
+pub enum OperationResult {
+    Active(MachineState),
+    Concluded(MachineState),
+}
+
+pub type InstructionPointer = usize;
+pub type Registers = [usize; 6];
+
+pub fn parse_instruction(i: &str) -> IResult<&str, Instruction> {
+    let (i, opcode) = terminated(map_res(alpha1, Opcode::from_str), space1)(i)?;
+    let (i, instruction) = terminated(separated_list0(tag(" "), number_usize), newline)(i)?;
+    if instruction.len() != 3 {
+        dbg!(&i);
+    }
+
+    Ok((
+        i,
+        Instruction {
+            opcode,
+            input1: instruction[0],
+            input2: instruction[1],
+            output: instruction[2],
+        },
+    ))
+}
+
+pub fn parse_program(i: &str) -> IResult<&str, (InstructionPointer, Vec<Instruction>)> {
+    let (i, instruction_pointer) = terminated(preceded(tag("#ip "), number_usize), newline)(i)?;
+    let (i, instructions) = many0(parse_instruction)(i)?;
+
+    Ok((i, (instruction_pointer, instructions)))
 }
