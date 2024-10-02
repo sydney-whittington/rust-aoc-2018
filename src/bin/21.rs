@@ -3,7 +3,8 @@ advent_of_code::solution!(21);
 use std::collections::HashMap;
 
 use advent_of_code::{
-    instructions, parse_program, Instruction, MachineState, Opcode, OperationResult, Registers,
+    instructions, parse_program, pause, Instruction, MachineState, Opcode, OperationResult,
+    Registers,
 };
 
 instructions!(Registers);
@@ -12,9 +13,14 @@ fn advance_program(state: MachineState) -> OperationResult {
     let mut registers = state.registers;
 
     if let Some(instruction) = state.instructions.get(&(registers[state.pointer])) {
-        print!("{}{}", &state, &instruction);
-        registers = execute_instruction(registers, *instruction);
-        println!(" {:?}", &registers);
+        if registers[state.pointer] == 28 {
+            print!("{}{}", &state, &instruction);
+            registers = execute_instruction(registers, *instruction);
+            println!(" {:?}", &registers);
+        }
+        else {
+            registers = execute_instruction(registers, *instruction);
+        }
         // advance the instruction pointer
         registers[state.pointer] += 1;
 
@@ -31,10 +37,9 @@ fn advance_program(state: MachineState) -> OperationResult {
 pub fn part_one(input: &str) -> Option<usize> {
     let (_, (pointer, instructions)) = parse_program(input).unwrap();
 
-    dbg!(&pointer, &instructions);
-
     let mut state = MachineState {
-        registers: [2, 0, 0, 0, 0, 0],
+        // determined by looking at the first number it checks against
+        registers: [202209, 0, 0, 0, 0, 0],
         pointer,
         instructions: HashMap::from_iter((0..).zip(instructions)),
     };
