@@ -3,8 +3,7 @@ advent_of_code::solution!(21);
 use std::collections::{HashMap, HashSet};
 
 use advent_of_code::{
-    instructions, parse_program, Instruction, MachineState, Opcode, OperationResult,
-    Registers,
+    instructions, parse_program, Instruction, MachineState, Opcode, OperationResult, Registers,
 };
 
 instructions!(Registers);
@@ -61,7 +60,7 @@ pub fn part_two(input: &str) -> Option<usize> {
     loop {
         match advance_program(state) {
             OperationResult::Active(s) => state = s,
-            OperationResult::Concluded(_) => panic!("somehow halted without being set to")
+            OperationResult::Concluded(_) => panic!("somehow halted without being set to"),
         }
         if state.registers[state.pointer] == 28 {
             if !seen_values.insert(state.registers[5]) {

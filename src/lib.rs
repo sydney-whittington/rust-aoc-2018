@@ -85,6 +85,15 @@ pub fn coord_parse(i: &str) -> IResult<&str, Coordinate<u32>> {
     Ok((i, Coordinate { left, top }))
 }
 
+pub fn coord_parse_usize(i: &str) -> IResult<&str, Coordinate<usize>> {
+    let (i, (left, top)) = separated_pair(
+        preceded(multispace0, number_usize),
+        tag(","),
+        preceded(multispace0, number_usize),
+    )(i)?;
+    Ok((i, Coordinate { left, top }))
+}
+
 // this needs a different one because it's center-referenced instead of corner
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct CoordinateSigned {
