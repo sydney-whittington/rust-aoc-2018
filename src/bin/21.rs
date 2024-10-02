@@ -12,9 +12,9 @@ fn advance_program(state: MachineState) -> OperationResult {
     let mut registers = state.registers;
 
     if let Some(instruction) = state.instructions.get(&(registers[state.pointer])) {
-        // print!("{}{}", &state, &instruction);
+        print!("{}{}", &state, &instruction);
         registers = execute_instruction(registers, *instruction);
-        // println!(" {:?}", &registers);
+        println!(" {:?}", &registers);
         // advance the instruction pointer
         registers[state.pointer] += 1;
 
@@ -34,7 +34,7 @@ pub fn part_one(input: &str) -> Option<usize> {
     dbg!(&pointer, &instructions);
 
     let mut state = MachineState {
-        registers: [0, 0, 0, 0, 0, 0],
+        registers: [2, 0, 0, 0, 0, 0],
         pointer,
         instructions: HashMap::from_iter((0..).zip(instructions)),
     };

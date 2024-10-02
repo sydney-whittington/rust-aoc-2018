@@ -155,7 +155,7 @@ pub enum Opcode {
     bori,
     setr,
     seti,
-    grit,
+    gtir,
     gtri,
     gtrr,
     eqir,
@@ -178,7 +178,7 @@ impl FromStr for Opcode {
             "bori" => Ok(Opcode::bori),
             "setr" => Ok(Opcode::setr),
             "seti" => Ok(Opcode::seti),
-            "grit" => Ok(Opcode::grit),
+            "gtir" => Ok(Opcode::gtir),
             "gtri" => Ok(Opcode::gtri),
             "gtrr" => Ok(Opcode::gtrr),
             "eqir" => Ok(Opcode::eqir),
@@ -231,7 +231,7 @@ macro_rules! instructions {
                 }
                 Opcode::setr => registers[instruction.output] = registers[instruction.input1],
                 Opcode::seti => registers[instruction.output] = instruction.input1,
-                Opcode::grit => {
+                Opcode::gtir => {
                     registers[instruction.output] =
                         (instruction.input1 > registers[instruction.input2]) as usize
                 }
