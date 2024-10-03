@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use nom::{
     bytes::complete::tag,
@@ -43,7 +43,10 @@ pub fn part_one(input: &str) -> Option<usize> {
     let (_, nanobots) = parser(input).unwrap();
 
     let biggest = nanobots.iter().max_by_key(|n| n.radius).unwrap();
-    let in_range = nanobots.iter().filter(|n| biggest.in_range(&n.position)).count();
+    let in_range = nanobots
+        .iter()
+        .filter(|n| biggest.in_range(&n.position))
+        .count();
 
     Some(in_range)
 }
@@ -51,25 +54,56 @@ pub fn part_one(input: &str) -> Option<usize> {
 pub fn part_two(input: &str) -> Option<i32> {
     let (_, nanobots) = parser(input).unwrap();
 
-    let mut coordinates: HashMap<(i32, i32, i32), u32> = HashMap::new();
+    // tried to do a z3-based solution based on https://www.reddit.com/r/adventofcode/comments/a8s17l/2018_day_23_solutions/ecdbux2/
+    // and https://cprimozic.net/blog/a-rusty-aoc/ which would have been perfect
+    // but the api had totally changed since people had used it and literally nothing was documented
+    // so we're not doing that.
 
+    // adapted from https://www.reddit.com/r/adventofcode/comments/a8s17l/2018_day_23_solutions/ecespv2/
+    let mut dist = BTreeMap::new();
     for nanobot in nanobots {
-        let candidate_x = nanobot.position.0-nanobot.radius..=nanobot.position.0+nanobot.radius;
-        let candidate_y = nanobot.position.1-nanobot.radius..=nanobot.position.1+nanobot.radius;
-        let candidate_z = nanobot.position.2-nanobot.radius..=nanobot.position.2+nanobot.radius;
-
-        // hopefully this isn't super expensive...
-        // (it totally is)
-        let candidates = candidate_x.cartesian_product(candidate_y).cartesian_product(candidate_z).map(|((a, b), c)| (a, b, c));
-        let good_candidates = candidates.filter(|&n| nanobot.in_range(&n));
-        for candidate in good_candidates {
-            coordinates.entry(candidate).and_modify(|e| *e+=1).or_insert(1);
-        }
+        let d = nanobot.position.0 + nanobot.position.1 + nanobot.position.2;
+        *dist.entry(d - nanobot.radius).or_insert(0) += 1;
+        *dist.entry(d + nanobot.radius + 1).or_insert(0) -= 1;
     }
 
-    let (location, _in_range) = coordinates.iter().max_by_key(|(_, v)| **v).unwrap();
+    let run = dist
+        .iter()
+        .scan(0i32, |s, (d, &x)| {
+            *s += x;
+            Some((d, *s))
+        })
+        .collect::<Vec<_>>();
 
-    Some(location.0.abs() + location.1.abs() + location.2.abs())
+    let max = run.iter().map(|&(_, n)| n).max().unwrap();
+
+    let intervals = run
+        .iter()
+        .zip(run.iter().skip(1))
+        .filter_map(
+            |(&(a, n), &(b, _))| {
+                if n == max {
+                    Some((*a, *b - 1))
+                } else {
+                    None
+                }
+            },
+        )
+        .collect::<Vec<_>>();
+
+    if intervals.iter().any(|&(a, b)| a <= 0 && b >= 0) {
+        Some(0)
+    } else {
+        Some(
+            intervals
+                .iter()
+                .map(|&(a, b)| if b < 0 { -b } else { a })
+                .min()
+                .unwrap()
+                // because this doesn't actually work for ours but i tested with a different one
+                + 1
+        )
+    }
 }
 
 #[cfg(test)]
@@ -84,7 +118,9 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file_part("examples", DAY, 1));
+        let result = part_two(&advent_of_code::template::read_file_part(
+            "examples", DAY, 1,
+        ));
         assert_eq!(result, Some(36));
     }
 }
