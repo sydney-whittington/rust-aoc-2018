@@ -101,7 +101,7 @@ pub fn part_two(input: &str) -> Option<i32> {
                 .min()
                 .unwrap()
                 // because this doesn't actually work for ours but i tested with a different one
-                + 1
+                + 1,
         )
     }
 }
