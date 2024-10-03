@@ -79,8 +79,7 @@ fn _print_cavern(cave: &Cave, cavern: &HashMap<Coordinate<usize>, usize>) {
     println!();
 }
 
-fn build_cavern(cave: &Cave, buffer: usize) -> HashMap<Coordinate<usize>, usize>
-{
+fn build_cavern(cave: &Cave, buffer: usize) -> HashMap<Coordinate<usize>, usize> {
     let mut cavern: HashMap<Coordinate<usize>, usize> = HashMap::new();
     // sorted by minimum sum which will give numbers closer to the top left corner first
     for (left, top) in (0..=cave.target.left + buffer)
@@ -149,7 +148,9 @@ pub fn part_two(input: &str) -> Option<u32> {
         };
     }
 
-    for (left, top) in (0..=cave.target.left + buffer-1).cartesian_product(0..=cave.target.top + buffer-1) {
+    for (left, top) in
+        (0..=cave.target.left + buffer - 1).cartesian_product(0..=cave.target.top + buffer - 1)
+    {
         let coords = Coordinate { left, top };
         let terrain = Terrain::from_usize(*cavern.get(&coords).unwrap());
 
