@@ -275,7 +275,31 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(battle.values().map(|g| g.units).sum())
 }
 
-pub fn part_two(_input: &str) -> Option<u32> {
+pub fn part_two(input: &str) -> Option<u32> {
+    let (_, battle) = parser(input).unwrap();
+    let mut battle = HashMap::from_iter(battle.into_iter().enumerate());
+
+    for i in 1.. {
+        // increment the immune power by 1
+        battle.iter_mut().filter(|(_, g)| matches!(g.side, Side::Immune)).for_each(|(_, g)| g.attack.damage += 1);
+        let mut boosted_battle = battle.clone();
+        loop {
+            let next_battle = fight(&boosted_battle, false);
+            if next_battle != boosted_battle {
+                boosted_battle = next_battle;
+            }
+            else {
+                break;
+            }
+        }
+        let immune_won = boosted_battle.values().all(|g| matches!(g.side, Side::Immune));
+        if immune_won {
+            return Some(boosted_battle.values().map(|g| g.units).sum());
+        }
+        else {
+            println!("tried boost of {}", i);
+        }
+    }
     None
 }
 
@@ -292,6 +316,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(51));
     }
 }
