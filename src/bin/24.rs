@@ -193,11 +193,11 @@ fn fight(groups: &HashMap<usize, Group>, debug: bool) -> HashMap<usize, Group> {
 
     if debug {
         println!("Immune System:");
-        for (i, group) in immune_targets.iter(){
+        for (i, group) in immune_targets.iter() {
             println!("Group {} contains {} units", i, group.units)
         }
         println!("Infection:");
-        for (i, group) in infection_targets.iter(){
+        for (i, group) in infection_targets.iter() {
             println!("Group {} contains {} units", i, group.units)
         }
         println!();
@@ -205,26 +205,52 @@ fn fight(groups: &HashMap<usize, Group>, debug: bool) -> HashMap<usize, Group> {
 
     let mut attacks = HashMap::new();
 
-    for (i, group) in groups.iter().sorted_unstable_by_key(|(_, g)| (g.effective_power(), g.attack.initiative)).rev() {
+    for (i, group) in groups
+        .iter()
+        .sorted_unstable_by_key(|(_, g)| (g.effective_power(), g.attack.initiative))
+        .rev()
+    {
         if matches!(group.side, Side::Immune) {
             if let Some(best_target) = infection_targets
                 .iter()
-                .max_by_key(|(_, g)| (group.potential_damage(g), g.effective_power(), g.attack.initiative))
+                .max_by_key(|(_, g)| {
+                    (
+                        group.potential_damage(g),
+                        g.effective_power(),
+                        g.attack.initiative,
+                    )
+                })
                 .cloned()
             {
                 if debug {
-                    println!("Immune System group {} would deal defending group {} {} damage", i, best_target.0, group.potential_damage(best_target.1));
+                    println!(
+                        "Immune System group {} would deal defending group {} {} damage",
+                        i,
+                        best_target.0,
+                        group.potential_damage(best_target.1)
+                    );
                 }
                 attacks.insert((i, group), infection_targets.take(&best_target));
             }
         } else if matches!(group.side, Side::Infection) {
             if let Some(best_target) = immune_targets
                 .iter()
-                .max_by_key(|(_, g) | (group.potential_damage(g), g.effective_power(), g.attack.initiative))
+                .max_by_key(|(_, g)| {
+                    (
+                        group.potential_damage(g),
+                        g.effective_power(),
+                        g.attack.initiative,
+                    )
+                })
                 .cloned()
             {
                 if debug {
-                    println!("Immune System group {} would deal defending group {} {} damage", i, best_target.0, group.potential_damage(best_target.1));
+                    println!(
+                        "Immune System group {} would deal defending group {} {} damage",
+                        i,
+                        best_target.0,
+                        group.potential_damage(best_target.1)
+                    );
                 }
                 attacks.insert((i, group), immune_targets.take(&best_target));
             }
@@ -232,7 +258,11 @@ fn fight(groups: &HashMap<usize, Group>, debug: bool) -> HashMap<usize, Group> {
     }
     let mut survivors = groups.to_owned();
 
-    for (attacker, defender) in attacks.iter().sorted_unstable_by_key(|((_, a), _)| a.attack.initiative).rev() {
+    for (attacker, defender) in attacks
+        .iter()
+        .sorted_unstable_by_key(|((_, a), _)| a.attack.initiative)
+        .rev()
+    {
         if defender.is_none() || !survivors.contains_key(attacker.0) {
             continue;
         }
@@ -244,7 +274,10 @@ fn fight(groups: &HashMap<usize, Group>, debug: bool) -> HashMap<usize, Group> {
         let units_lost = damage / defender.hit_points;
 
         if debug {
-            println!("{:?} group {} attacks defending group {}, killing {} units", attacker.side, attacker_id, defender_id, units_lost);
+            println!(
+                "{:?} group {} attacks defending group {}, killing {} units",
+                attacker.side, attacker_id, defender_id, units_lost
+            );
         }
 
         if units_lost < defender.units {
@@ -267,8 +300,7 @@ pub fn part_one(input: &str) -> Option<u32> {
         let next_battle = fight(&battle, false);
         if next_battle != battle {
             battle = next_battle;
-        }
-        else {
+        } else {
             break;
         }
     }
@@ -281,22 +313,25 @@ pub fn part_two(input: &str) -> Option<u32> {
 
     for i in 1.. {
         // increment the immune power by 1
-        battle.iter_mut().filter(|(_, g)| matches!(g.side, Side::Immune)).for_each(|(_, g)| g.attack.damage += 1);
+        battle
+            .iter_mut()
+            .filter(|(_, g)| matches!(g.side, Side::Immune))
+            .for_each(|(_, g)| g.attack.damage += 1);
         let mut boosted_battle = battle.clone();
         loop {
             let next_battle = fight(&boosted_battle, false);
             if next_battle != boosted_battle {
                 boosted_battle = next_battle;
-            }
-            else {
+            } else {
                 break;
             }
         }
-        let immune_won = boosted_battle.values().all(|g| matches!(g.side, Side::Immune));
+        let immune_won = boosted_battle
+            .values()
+            .all(|g| matches!(g.side, Side::Immune));
         if immune_won {
             return Some(boosted_battle.values().map(|g| g.units).sum());
-        }
-        else {
+        } else {
             println!("tried boost of {}", i);
         }
     }
