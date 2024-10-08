@@ -52,21 +52,21 @@ pub fn part_one(input: &str) -> Option<usize> {
         }
         // part of an existing constellation
         else if neighbors.len() == 1 {
-            constellations.entry(*neighbors[0].0).and_modify(|c| {c.insert(*coord);});
+            constellations.entry(*neighbors[0].0).and_modify(|c| {
+                c.insert(*coord);
+            });
         }
         // joining multiple constellations
         else {
             let marked_for_death = neighbors.iter().map(|(&i, _)| i).collect::<Vec<_>>();
-            let mut new_constellation: HashSet<FourD, RandomState> = HashSet::from_iter(
-                neighbors
-                    .iter()
-                    .flat_map(|(_, n)| n.iter())
-                    .copied(),
-            );
+            let mut new_constellation: HashSet<FourD, RandomState> =
+                HashSet::from_iter(neighbors.iter().flat_map(|(_, n)| n.iter()).copied());
             new_constellation.insert(*coord);
             constellations.insert(constellations.keys().max().unwrap() + 1, new_constellation);
 
-            marked_for_death.into_iter().for_each(|i| {constellations.remove(&i);});
+            marked_for_death.into_iter().for_each(|i| {
+                constellations.remove(&i);
+            });
         }
     }
 
@@ -90,7 +90,10 @@ mod tests {
     #[test]
     fn test_parse_2() {
         let result = parser("-1,2,2,0\n0,0,2,-2");
-        assert_eq!(result, Ok(("", vec![FourD(-1, 2, 2, 0), FourD(0,0,2,-2)])));
+        assert_eq!(
+            result,
+            Ok(("", vec![FourD(-1, 2, 2, 0), FourD(0, 0, 2, -2)]))
+        );
     }
 
     #[test]
